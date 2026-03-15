@@ -146,11 +146,7 @@ class ApplyFixesUseCase:
                             if old_name and new_name and old_name != new_name:
                                 mods = tracer.project_wide_rename(root_dir, old_name, new_name)
                                 if isinstance(mods, int) and mods > 0:
-                                    # Final type-safe addition
-                                    curr_val = renamed_modifications
-                                    if not isinstance(curr_val, int):
-                                        curr_val = 0
-                                    renamed_modifications = curr_val + int(mods)
+                                    renamed_modifications += mods
                                     msg_line = f"Semantic Rename: Changed '{old_name}' -> '{new_name}' across {mods} files.\n"
                                     output_log = str(output_log or "") + msg_line
             except json.JSONDecodeError:

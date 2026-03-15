@@ -1,7 +1,7 @@
 # Auto Linter (MCP Server)
 
 [![Maintainability](https://img.shields.io/badge/Maintainability-A-green.svg)](https://github.com/rakaarwaky/auto_linter)
-[![Coverage](https://img.shields.io/badge/Coverage-95%25-brightgreen.svg)](https://github.com/rakaarwaky/auto_linter)
+[![Coverage](https://img.shields.io/badge/Coverage-97%25-brightgreen.svg)](https://github.com/rakaarwaky/auto_linter)
 [![Governance](https://img.shields.io/badge/Governance-100.0-blue.svg)](GOVERNANCE.md)
 
 Auto Linter is a Model Context Protocol (MCP) Server that provides autonomous, multi-language linting, type-checking, and governance auditing for software projects. Designed to support robust engineering workflows, it enforces strict code quality and architectural standards.

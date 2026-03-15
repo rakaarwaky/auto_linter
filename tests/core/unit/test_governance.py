@@ -4,6 +4,7 @@ Unit tests for the GovernanceAdapter architectural layer enforcement.
 import os
 import tempfile
 import textwrap
+from unittest.mock import MagicMock
 
 
 from src.core.capabilities.linting.governance import (
@@ -300,3 +301,45 @@ def test_governance_adapter_multiple_violations():
         adapter = GovernanceAdapter()
         results = adapter.scan(root)
         assert len(results) == 2
+
+def test_governance_unknown_layer_import():
+    """Unrecognized target layers should be skipped."""
+    code = textwrap.dedent("""
+        import math
+    """)
+    with tempfile.TemporaryDirectory() as root:
+        src_dir = os.path.join(root, "src", "core")
+        os.makedirs(src_dir)
+        filepath = os.path.join(src_dir, "multi.py")
+        with open(filepath, "w") as f:
+            f.write(code)
+
+        adapter = GovernanceAdapter()
+        results = adapter.scan(root)
+        assert len(results) == 0
+
+def test_governance_adapter_tracer_exception():
+    code = textwrap.dedent("""
+        from src.infrastructure.adapters.python import RuffAdapter
+    """)
+    with tempfile.TemporaryDirectory() as root:
+        src_dir = os.path.join(root, "src", "surfaces", "mcp")
+        os.makedirs(src_dir)
+        filepath = os.path.join(src_dir, "bad.py")
+        with open(filepath, "w") as f:
+            f.write(code)
+
+        mock_tracer = MagicMock()
+        mock_tracer.trace_call_chain.side_effect = Exception("failed")
+        adapter = GovernanceAdapter(tracer=mock_tracer)
+        results = adapter.scan(root)
+        assert len(results) == 1
+        assert "infrastructure" in results[0].message
+        mock_tracer.trace_call_chain.assert_called_once()
+
+def test_resolve_root_no_src():
+    with tempfile.TemporaryDirectory() as tmp:
+        target = os.path.join(tmp, "some_action.py")
+        open(target, "w").close()
+        root = _resolve_root(target)
+        assert root == "/"

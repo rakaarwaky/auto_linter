@@ -145,3 +145,26 @@ async def test_apply_fixes_use_case_file_not_found():
     with patch("subprocess.run", side_effect=FileNotFoundError):
         result = await use_case.execute("test.py")
         assert "Error: Linter executable not found." in result
+
+@pytest.mark.asyncio
+async def test_apply_fixes_use_case_semantic_rename_n801():
+    use_case = ApplyFixesUseCase(venv_bin="/fake/bin")
+    mock_tracer = MagicMock()
+    mock_tracer.get_variant_dict.return_value = {"snake_case": "good_name", "pascal_case": "GoodName"}
+    mock_tracer.project_wide_rename.return_value = 1
+    
+    use_case.tracers = {"python": mock_tracer}
+    
+    with patch("subprocess.run") as mock_run:
+        # Mock ruff check output with N801 violation
+        mock_run.return_value = MagicMock(
+            stdout=json.dumps([{"code": "N801", "message": "class name 'badname' should use CapWords", "path": "file.py", "line": 1}]), 
+            stderr="", 
+            check_returncode=lambda: None
+        )
+        
+        result = await use_case.execute("test.py")
+        
+        assert "Semantic Rename" in result
+        assert "Changed 'badname' -> 'GoodName'" in result
+        mock_tracer.project_wide_rename.assert_called()

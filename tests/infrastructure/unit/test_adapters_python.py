@@ -417,3 +417,24 @@ def test_mypy_adapter_scan_non_phantom_abspath_fallback(mock_abs, mock_isabs, mo
     results = MyPyAdapter().scan("/abs/")
     assert len(results) == 1
     assert results[0].file == "/abs/rel.py"
+
+@patch("subprocess.run")
+def test_ruff_adapter_custom_bin_path(mock_run):
+    mock_run.return_value = MagicMock(stdout="[]", stderr="")
+    adapter = RuffAdapter(bin_path="/custom/bin")
+    results = adapter.scan("test.py")
+    assert results == []
+
+@patch("subprocess.run")
+def test_ruff_adapter_json_decode_split_empty(mock_run):
+    mock_run.return_value = MagicMock(stdout="Noise [", stderr="")
+    adapter = RuffAdapter()
+    results = adapter.scan("test.py")
+    assert results == []
+
+@patch("subprocess.run")
+def test_mypy_adapter_custom_bin_path(mock_run):
+    mock_run.return_value = MagicMock(stdout="", stderr="")
+    adapter = MyPyAdapter(bin_path="/custom/bin")
+    results = adapter.scan("test.py")
+    assert results == []
