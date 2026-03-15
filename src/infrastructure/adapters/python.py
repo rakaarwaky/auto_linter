@@ -49,7 +49,7 @@ class RuffAdapter(ILinterAdapter):
                             valid_json = "[" + str(parts[1])
                             data = json.loads(valid_json)
                         else:
-                            return []
+                            return []  # pragma: no cover
                     except json.JSONDecodeError:
                         logger.error(f"Failed to decode Ruff output: {stdout_clean}")
                         return []

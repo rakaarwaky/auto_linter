@@ -343,3 +343,24 @@ def test_resolve_root_no_src():
         open(target, "w").close()
         root = _resolve_root(target)
         assert root == "/"
+
+def test_governance_adapter_tracer_success():
+    code = textwrap.dedent("""
+        from src.infrastructure.adapters.python import RuffAdapter
+    """)
+    with tempfile.TemporaryDirectory() as root:
+        src_dir = os.path.join(root, "src", "surfaces", "mcp")
+        os.makedirs(src_dir)
+        filepath = os.path.join(src_dir, "bad.py")
+        with open(filepath, "w") as f:
+            f.write(code)
+
+        mock_tracer = MagicMock()
+        mock_tracer.trace_call_chain.return_value = ["file.py:3 -> call()", "file2.py:4 -> call()"]
+        adapter = GovernanceAdapter(tracer=mock_tracer)
+        results = adapter.scan(root)
+        
+        # Test full resolution
+        assert len(results) == 1
+        assert "CallSite: file.py:3 -> call()" in results[0].related_locations
+
