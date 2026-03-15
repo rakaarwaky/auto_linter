@@ -1,0 +1,2 @@
+[console_scripts]
+auto-linter = src.surfaces.mcp.server:main
