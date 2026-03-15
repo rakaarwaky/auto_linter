@@ -1,34 +1,31 @@
-# Architectural Governance & Asset Verification
+# Architectural Governance & Project Standards
 
-> **"Code is an Asset. Architecture is Economics."**
+This document outlines the governance model, contribution standards, and architectural invariants for the **Auto Linter** project. We adhere to the Agentic Engineering System (AES) principles, treating code as an economic asset where technical debt is minimized through empirical verification.
 
-## AES Identity
+## 1. Project Governance Model
 
-The `auto_linter` module operates as a **Tier 3 Semantic UID** (The Builder). Its primary responsibility is the enforcement of Code Governance and Quality Assurance within the Agentic Engineering System (AES) framework. It acts as the "Constitution"—defining the precise rules of engagement for how code is formatted and presented to the system.
+The Auto Linter project operates under a maintainer-led governance model. Decisions regarding architectural shifts, new language support, and core capability extensions are guided by the principles of **Methodological Skepticism**. All changes must be backed by empirical data (metrics, test coverage, static analysis).
 
-## Verification Protocol
+## 2. Empirical Verification Standards
 
-As a core piece of infrastructure that controls quality assurance, its own integrity is paramount. It adheres to **Methodological Skepticism** and strictly relies on empirical verification.
+To prevent architectural drift and semantic entropy, every pull request or push to the main branch MUST satisfy the following criteria:
 
-### Empirical Status (Verified: 2026)
+- **Logic Integrity**: A minimum of **95% Test Coverage** is required across all domains (`src/`). Untested code is considered a liability.
+- **Surface & Format Integrity**: The project must maintain a **100.0 Governance Score**. This means zero stylistic warnings, zero unused imports, zero type errors, and zero unresolved static analysis issues across all supported tools (Ruff, MyPy, Prettier, ESLint, TSC).
 
-This module has been subjected to the highest standards of the AES framework:
-
-- **Logic Integrity:** `95% Test Coverage` across all domains (`src/`).
-- **Surface & Format Integrity:** `100.0 Governance Score`, completely void of stylistic warnings, unused imports, type errors, or architectural drift across Ruff, Mypy, Pyre, and Prettier.
-
-## Operating Rules (The Builder Handshake)
+## 3. Structural Invariants
 
 When modifying or auditing this asset, the following structural invariants are actively enforced:
 
-1. **TAXONOMY:** All domains exist precisely in one core entity (`src/`). Names are explicitly defined without abbreviations (e.g., `governance.py`).
-2. **CAPABILITY:** Vertical slicing is utilized around the concepts of `adapters`, `actions`, and the underlying MCP `server`.
-3. **INFRASTRUCTURE:** Testing (`tests/`) mirrors the vertical architecture of the working source code exactly.
-4. **SURFACE:** The sole ingestion surface is the FastMCP server implementation (`src/surfaces/mcp/server.py`). The boundary between internal and external use cases is absolute.
+1. **Taxonomy (Explicit Definition)**: All domains exist precisely in one core entity (`src/`). Names must be explicit and avoid abbreviations (e.g., `governance.py`, not `gov.py`).
+2. **Capability (Vertical Slicing)**: Features are organized by vertical slices around core concepts such as `adapters`, `actions`, and the underlying MCP `server`. Everything a feature needs lives in one cohesive location.
+3. **Infrastructure (Replaceability)**: Third-party tools (e.g., Ruff, ESLint) are treated as replaceable adapters. The core logic must never be tightly coupled to a specific external tool's implementation details.
+4. **Surface (Strict Boundaries)**: The sole ingestion surface is the FastMCP server implementation (`src/surfaces/mcp/server.py`). The boundary between internal domain logic and external exposure is absolute. Functionality must be reachable from a Surface.
 
-## Sub-Adapters
+## 4. Decision-Making Process
 
-This module uses an extensible class interface to interact with third-party tools, ensuring tech is treated as a replaceable adapter:
+1. **Proposals**: Significant changes should be proposed via an Issue, detailing the "Why" and the empirical impact.
+2. **Implementation**: Code changes must follow the structural invariants listed above. Max directory depth is 5 levels. One file, one concern.
+3. **Review**: Maintainers will review the Code Coverage report and Linting/Governance score before approving. Subjective style debates are deferred to automated formatters.
 
-- Python: `Ruff`, `Mypy`, `Pyre`
-- JavaScript/TypeScript: `ESLint`, `Prettier`, `TSC`
+By contributing to this repository, you agree to uphold these standards to ensure the continuous operational excellence of the Auto Linter infrastructure.

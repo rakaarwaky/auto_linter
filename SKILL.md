@@ -1,55 +1,47 @@
 ---
 name: auto_linter
-description: Core AES Infrastructure for Autonomous Linting & Governance Auditing.
+description: Core Infrastructure for Autonomous Linting & Governance Auditing.
 version: 1.0.0
 architecture: Clean Architecture
-verified: 100% Coverage, 100.0 Score
+verified: 95% Coverage, 100.0 Score
 ---
 
-# Auto Linter Skill 🧹
+# Auto Linter Skill
 
-> **"Code is an Asset. Architecture is Economics."**
+This document provides the Standard Operating Procedure (SOP) for integrating and utilizing the Auto Linter MCP Server. It is designed for AI agents and automated systems (referred to as "The Builder") interacting with the codebase.
 
-This is an **Agentic Operating Manual**. As a Tier 3 Semantic UID (The Builder), you MUST follow these protocols when modifying or creating code.
+## Overview
 
-The `auto_linter` is a mandatory piece of your development infrastructure. It provides empirical verification for all logic changes, enforcing the strict formatting and structural rules of the AES framework.
-
-## Empirical Status
-
-The infrastructure you are using is completely verified:
-
-- **100% Test Coverage**
-- **100.0 Governance Score** across all tools (Ruff, MyPy, Pyre, ESLint, Prettier, TSC).
+The `auto_linter` is a mandatory piece of development infrastructure. It provides empirical verification for logic and formatting changes, enforcing strict code quality standards across Python and JavaScript ecosystems.
 
 ## Core Capabilities
 
-1.  **Multi-Engine Analysis**: Simultaneously orchestrates Python (Ruff, MyPy, Pyre) and JavaScript/TypeScript (ESLint, Prettier, TSC) static analysis.
-2.  **AES Governance Enforcement**: Identifies architectural drift, missing vertical slices, and overly complex files.
-3.  **Self-Healing**: Automatically applies safe fixes to restore asset integrity.
+1. **Multi-Engine Static Analysis**: Orchestrates concurrent analysis using industry-standard tools:
+   - Python: Ruff, MyPy, Pyre
+   - JavaScript/TypeScript: ESLint, Prettier, TSC
+2. **Automated Governance**: Identifies architectural drift, complex files, and missing vertical integrations.
+3. **Safe Auto-Fixing**: Automatically resolves common stylistic and syntactic errors.
 
-## Agent Standard Operating Procedure (SOP)
+## Standard Operating Procedure (SOP)
 
-You are equipped with two specialized tools from the `auto_linter` MCP server. You MUST use them in the following sequence:
+Agents MUST utilize the `auto_linter` MCP tools in the following sequence during the development lifecycle:
 
-### 1. `apply_safe_fixes`
+### Phase 1: Clean & Format (`apply_safe_fixes`)
 
-- **When to use:** IMMEDIATELY after creating or modifying any file.
-- **Purpose:** Automatically cleans up formatting, unused imports, and basic stylistic errors before you begin deeper analysis.
-- **Action:** Call `mcp_auto_linter_apply_safe_fixes` with the absolute path to the file or directory.
+- **When to use**: IMMEDIATELY following the creation or modification of any source code file.
+- **Action**: Call `mcp_auto_linter_apply_safe_fixes` with the absolute path to the modified file or directory.
+- **Purpose**: Automatically standardizes formatting, removes unused imports, and resolves basic stylistic errors before deeper semantic analysis occurs.
 
-### 2. `run_lint_check`
+### Phase 2: Deep Audit (`run_lint_check`)
 
-- **When to use:** After `apply_safe_fixes`, or when auditing an existing asset.
-- **Purpose:** To perform a deep semantic analysis, type checking (MyPy/Pyre/TSC), and Governance auditing.
-- **Action:** Call `mcp_auto_linter_run_lint_check` with the absolute path.
-- **Condition for Success:** You MUST achieve a `100.0` score with `is_passing: true`. If the score is lower, you must manually resolve the reported errors (e.g., adding type hints, fixing undefined variables) and re-run the check until the asset passes.
+- **When to use**: After `apply_safe_fixes` has completed, or when initially auditing an existing asset prior to modification.
+- **Action**: Call `mcp_auto_linter_run_lint_check` with the absolute path.
+- **Purpose**: Executes deep semantic analysis, type-checking, and overall governance auditing.
+- **Success Criteria**: The tool MUST return `is_passing: true` with a score of `100.0`.
 
-## Failure Mitigation
+### Phase 3: Resolution & Mitigation
 
-If `run_lint_check` returns errors:
-
-1. Do NOT ignore them. Code with errors is considered "Dead Stock" in the AES economic model.
-2. Analyze the specific file, line, and code provided in the output.
-3. Use your code editing tools to correct the logic or taxonomy failure.
-4. Execute `run_lint_check` again to empirically verify the fix.
-
+If `run_lint_check` returns a score below `100.0` or `is_passing: false`:
+1. **Identify**: Review the structured output to locate the specific file, line, and rule violation. Code with errors is considered a liability.
+2. **Resolve**: Use appropriate code editing tools to manually correct the logic, type hints, or structural failure.
+3. **Re-verify**: You MUST execute `run_lint_check` again after making corrections. Do not proceed to other tasks until the governance score is restored to 100.0.
