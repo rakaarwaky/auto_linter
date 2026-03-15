@@ -17,7 +17,7 @@ The `auto_linter` is a mandatory piece of development infrastructure. It provide
 ## Core Capabilities
 
 1. **Multi-Engine Static Analysis**: Orchestrates concurrent analysis using industry-standard tools:
-   - Python: Ruff, MyPy, Pyre
+   - Python: Ruff, MyPy
    - JavaScript/TypeScript: ESLint, Prettier, TSC
 2. **Automated Governance**: Identifies architectural drift, complex files, and missing vertical integrations.
 3. **Safe Auto-Fixing**: Automatically resolves common stylistic and syntactic errors.
