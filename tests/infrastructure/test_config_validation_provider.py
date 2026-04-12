@@ -249,6 +249,10 @@ class TestGetConfig:
 
 class TestResetConfig:
     def test_reset_config(self):
-        reset_config()
+        # Import the module first to ensure we're testing the right instance
         import infrastructure.config_validation_provider as cvp
+        # Set a config first
+        cvp._config = cvp.AppConfig()
+        # Now reset it
+        cvp.reset_config()
         assert cvp._config is None

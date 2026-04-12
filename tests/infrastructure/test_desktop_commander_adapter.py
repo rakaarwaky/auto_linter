@@ -25,9 +25,11 @@ class TestDetectProtocol:
 
 class TestDesktopCommanderAdapterInit:
     def test_default_url(self):
-        adapter = DesktopCommanderAdapter()
-        assert adapter.url == "/run/desktop-commander/socket"
-        assert adapter.protocol == "UnixSocket"
+        # Clear environment variable to test default
+        with patch.dict("os.environ", {}, clear=True):
+            adapter = DesktopCommanderAdapter()
+            assert adapter.url == "/run/desktop-commander/socket"
+            assert adapter.protocol == "UnixSocket"
 
     def test_custom_url(self):
         adapter = DesktopCommanderAdapter(url="http://localhost:8080")

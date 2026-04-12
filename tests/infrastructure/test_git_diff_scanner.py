@@ -140,6 +140,71 @@ class TestGetChangedFiles:
             result = get_changed_files(root=Path("/tmp"))
             assert ("src/old.py", "src/new.py") in result.renamed
 
+    def test_target_staged(self):
+        """Test with target='staged' (lines 59-61)."""
+        call_count = [0]
+
+        def mock_run(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                mock = MagicMock()
+                mock.returncode = 0
+                return mock
+            # Should use --cached for staged
+            cmd = args[0]
+            assert "--cached" in cmd, f"Expected --cached in {cmd}"
+            mock = MagicMock()
+            mock.stdout = ""
+            mock.returncode = 0
+            return mock
+
+        with patch("subprocess.run", side_effect=mock_run):
+            result = get_changed_files(root=Path("/tmp"), target="staged")
+            assert result is not None
+
+    def test_target_two_refs(self):
+        """Test with target as a ref (lines 62-64)."""
+        call_count = [0]
+
+        def mock_run(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                mock = MagicMock()
+                mock.returncode = 0
+                return mock
+            # Should have base and target
+            cmd = args[0]
+            assert "main" in cmd and "develop" in cmd, f"Expected refs in {cmd}"
+            mock = MagicMock()
+            mock.stdout = ""
+            mock.returncode = 0
+            return mock
+
+        with patch("subprocess.run", side_effect=mock_run):
+            result = get_changed_files(root=Path("/tmp"), base="main", target="develop")
+            assert result is not None
+
+    def test_diff_fallback_fails_again(self):
+        """Test when both diff commands fail (lines 85-86)."""
+        call_count = [0]
+
+        def mock_run(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                # First call (git rev-parse) succeeds
+                mock = MagicMock()
+                mock.returncode = 0
+                return mock
+            # Both diff commands fail
+            raise subprocess.CalledProcessError(1, "git diff")
+
+        with patch("subprocess.run", side_effect=mock_run):
+            result = get_changed_files(root=Path("/tmp"))
+            # Should return empty DiffResult
+            assert result is not None
+            assert result.added == []
+            assert result.modified == []
+
 
 class TestFilterByExtensions:
     def test_filters_python_files(self):

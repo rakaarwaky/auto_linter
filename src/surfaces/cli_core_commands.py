@@ -177,7 +177,7 @@ def security(path):
 
 @cli.command()
 @click.option('--base', default='HEAD', help='Git ref to compare from (default: HEAD)')
-@click.option('--format', type=click.Choice(['text', 'json']), default='text')
+@click.option('--output-format', type=click.Choice(['text', 'json']), default='text')
 def git_diff(base, output_format):
   """Show files changed since base ref (git diff awareness)."""
   container = get_container()
@@ -239,7 +239,7 @@ def plugins():
 
 @cli.command()
 @click.argument('paths', nargs=-1, type=click.Path(exists=True))
-@click.option('--format', type=click.Choice(['text', 'json']), default='text')
+@click.option('--output-format', type=click.Choice(['text', 'json']), default='text')
 @click.option('--config', '-c', help='Config file with multi_project_paths')
 def multi_project(paths, output_format, config):
   """Run lint across multiple projects and aggregate results."""

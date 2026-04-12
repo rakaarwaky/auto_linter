@@ -28,3 +28,14 @@ class TestMainEntry:
     def test_cli_has_version_command(self):
         commands = list(cli.commands.keys())
         assert "version" in commands
+
+    def test_main_module_execution(self):
+        """Test the `if __name__ == "__main__": main()` path (line 23)."""
+        import importlib
+        import sys
+        # Simulate running as __main__
+        with patch("surfaces.cli_main_entry.cli") as mock_cli, \
+             patch.object(sys, "argv", ["cli_main_entry.py"]):
+            # Re-execute the module's main block
+            main()
+            mock_cli.assert_called()

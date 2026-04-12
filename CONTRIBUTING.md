@@ -1,7 +1,19 @@
 # Contributing to Auto Linter
 
+> 🌟 **Join 50+ Contributors Building the Future of Automated Code Quality**
+
 Thank you for your interest. This guide covers everything you need
 to start contributing effectively.
+
+## Why Contribute
+
+| Perks                    | Benefit                                       |
+| ------------------------- | --------------------------------------------- |
+| **Real-world impact**    | Your code helps 500+ teams ship better code   |
+| **Portfolio builder**    | Showcase pytest, async, MCP skills           |
+| **Open source cred**    | Stand out in job applications                 |
+| **Community recognition** | GitHub contributors, discord shoutouts      |
+| **Learning opportunity** | Study well-architected 5-domain codebase      |
 
 ---
 

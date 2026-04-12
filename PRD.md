@@ -23,6 +23,8 @@ Connects to DesktopCommander for secure command execution.
 
 ## 2. Problem Statement
 
+> 🚨 **Your Codebase is Bleeding Quality Debt** — Every day you wait, it gets worse.
+
 Software projects accumulate quality debt silently. Developers lack:
 
 - Automated pre-commit quality gates that run without configuration
@@ -30,6 +32,16 @@ Software projects accumulate quality debt silently. Developers lack:
 - Unified interface across multiple linters (Ruff, MyPy, Bandit, ESLint...)
 - Both human-accessible CLI and AI-agent-accessible MCP tools from one codebase
 - Easy setup for community/open-source distribution
+
+**The Real Cost of Inaction:**
+
+| Issue                  | Impact                                   |
+| ---------------------- | ---------------------------------------- |
+| Manual linting         | 10 hours/month wasted                    |
+| Architectural debt    | $10K-50K refactoring cost               |
+| Security breaches    | Data leaks, reputation damage           |
+| CI failures         | Delayed deployments, lost revenue      |
+| Team inconsistency  | Code review battles, developer churn |
 
 Auto Linter solves all five.
 

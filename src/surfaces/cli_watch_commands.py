@@ -13,8 +13,8 @@ class LintHandler:
 
       class _Handler(FileSystemEventHandler):
         def __init__(inner_self):
-          self._path = path
-          self._container = get_container()
+          inner_self._path = path
+          inner_self._container = get_container()
 
         def on_modified(inner_self, event):
           if event.is_directory or not event.src_path.endswith(('.py', '.js', '.ts')):

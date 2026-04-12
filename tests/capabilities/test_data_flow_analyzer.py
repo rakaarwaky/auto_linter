@@ -2,6 +2,8 @@
 
 import tempfile
 import os
+from unittest.mock import patch
+import pytest
 from capabilities.data_flow_analyzer import find_flow
 
 
@@ -9,6 +11,13 @@ class TestFindFlow:
     def test_nonexistent_file(self):
         result = find_flow("/nonexistent/file.js", "x")
         assert result == []
+
+    def test_file_read_raises_oserror(self):
+        """Test when file exists but cannot be read (lines 19-20)."""
+        with patch("builtins.open", side_effect=OSError("Cannot read")):
+            with patch("os.path.exists", return_value=True):
+                result = find_flow("/tmp/test.js", "x")
+                assert result == []
 
     def test_variable_assignment_and_usage(self):
         code = """const myVar = 1;

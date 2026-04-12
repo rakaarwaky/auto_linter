@@ -6,6 +6,7 @@ import builtins
 from click.testing import CliRunner
 from unittest.mock import MagicMock, patch, AsyncMock
 import click
+import asyncio
 
 
 def _ensure_watchdog_mocked():
@@ -75,11 +76,18 @@ class TestWatchCommand:
         cli = self._make_cli()
         runner = CliRunner()
 
+        # Mock watchdog modules
+        _ensure_watchdog_mocked()
+        
         mock_observer = MagicMock()
+        mock_handler = MagicMock()
+        mock_handler._handler = MagicMock()
+        
         import tempfile
         with tempfile.TemporaryDirectory() as d:
-            with patch("surfaces.cli_watch_commands.Observer", return_value=mock_observer, create=True), \
-                 patch("surfaces.cli_watch_commands.LintHandler", return_value=MagicMock(_handler=MagicMock())), \
+            # Patch at the point of import
+            with patch("watchdog.observers.Observer", return_value=mock_observer), \
+                 patch("surfaces.cli_watch_commands.LintHandler", return_value=mock_handler), \
                  patch("surfaces.cli_watch_commands.time") as mock_time:
                 mock_time.sleep.side_effect = KeyboardInterrupt
                 result = runner.invoke(cli, ["watch", d])
@@ -94,11 +102,18 @@ class TestWatchCommand:
         cli = self._make_cli()
         runner = CliRunner()
 
+        # Mock watchdog modules
+        _ensure_watchdog_mocked()
+        
         mock_observer = MagicMock()
+        mock_handler = MagicMock()
+        mock_handler._handler = MagicMock()
+        
         import tempfile
         with tempfile.TemporaryDirectory() as d:
-            with patch("surfaces.cli_watch_commands.Observer", return_value=mock_observer, create=True), \
-                 patch("surfaces.cli_watch_commands.LintHandler", return_value=MagicMock(_handler=MagicMock())), \
+            # Patch at the point of import
+            with patch("watchdog.observers.Observer", return_value=mock_observer), \
+                 patch("surfaces.cli_watch_commands.LintHandler", return_value=mock_handler), \
                  patch("surfaces.cli_watch_commands.time") as mock_time:
                 mock_time.sleep.side_effect = KeyboardInterrupt
                 runner.invoke(cli, ["watch", d])
@@ -110,11 +125,18 @@ class TestWatchCommand:
         cli = self._make_cli()
         runner = CliRunner()
 
+        # Mock watchdog modules
+        _ensure_watchdog_mocked()
+        
         mock_observer = MagicMock()
+        mock_handler = MagicMock()
+        mock_handler._handler = MagicMock()
+        
         import tempfile
         with tempfile.TemporaryDirectory() as d:
-            with patch("surfaces.cli_watch_commands.Observer", return_value=mock_observer, create=True), \
-                 patch("surfaces.cli_watch_commands.LintHandler", return_value=MagicMock(_handler=MagicMock())), \
+            # Patch at the point of import
+            with patch("watchdog.observers.Observer", return_value=mock_observer), \
+                 patch("surfaces.cli_watch_commands.LintHandler", return_value=mock_handler), \
                  patch("surfaces.cli_watch_commands.time") as mock_time:
                 mock_time.sleep.side_effect = KeyboardInterrupt
                 runner.invoke(cli, ["watch", "."])
@@ -130,6 +152,8 @@ class TestLintHandler:
         _ensure_watchdog_mocked()
         mock_container = MagicMock()
         mock_container.analysis_use_case.execute = AsyncMock()
+        
+        # Mock the get_container function
         with patch("agent.dependency_injection_container.get_container", return_value=mock_container):
             # Need to reload to pick up mocked watchdog
             import importlib
@@ -185,8 +209,12 @@ class TestLintHandler:
         event = MagicMock()
         event.is_directory = False
         event.src_path = "/test/file.py"
-        lh._handler.on_modified(event)
-        mock_container.analysis_use_case.execute.assert_called_once()
+        
+        # Mock asyncio.run to avoid actual async execution
+        with patch("asyncio.run") as mock_run:
+            lh._handler.on_modified(event)
+            mock_container.analysis_use_case.execute.assert_called_once_with("/test/file.py")
+            mock_run.assert_called_once()
 
     def test_handler_processes_js_files(self):
         """Handler should process .js files."""
@@ -194,8 +222,12 @@ class TestLintHandler:
         event = MagicMock()
         event.is_directory = False
         event.src_path = "/test/file.js"
-        lh._handler.on_modified(event)
-        mock_container.analysis_use_case.execute.assert_called_once()
+        
+        # Mock asyncio.run to avoid actual async execution
+        with patch("asyncio.run") as mock_run:
+            lh._handler.on_modified(event)
+            mock_container.analysis_use_case.execute.assert_called_once_with("/test/file.js")
+            mock_run.assert_called_once()
 
     def test_handler_processes_ts_files(self):
         """Handler should process .ts files."""
@@ -203,8 +235,12 @@ class TestLintHandler:
         event = MagicMock()
         event.is_directory = False
         event.src_path = "/test/file.ts"
-        lh._handler.on_modified(event)
-        mock_container.analysis_use_case.execute.assert_called_once()
+        
+        # Mock asyncio.run to avoid actual async execution
+        with patch("asyncio.run") as mock_run:
+            lh._handler.on_modified(event)
+            mock_container.analysis_use_case.execute.assert_called_once_with("/test/file.ts")
+            mock_run.assert_called_once()
 
     def test_handler_echoes_file_path(self):
         """Handler should print 'Re-checking' message before analysis."""
@@ -212,5 +248,10 @@ class TestLintHandler:
         event = MagicMock()
         event.is_directory = False
         event.src_path = "/test/file.py"
-        lh._handler.on_modified(event)
-        mock_container.analysis_use_case.execute.assert_called_with("/test/file.py")
+        
+        # Mock asyncio.run to avoid actual async execution
+        with patch("asyncio.run") as mock_run:
+            lh._handler.on_modified(event)
+            # The echo happens before asyncio.run, so we can't easily capture it
+            # But we can verify the execute was called
+            mock_container.analysis_use_case.execute.assert_called_once_with("/test/file.py")

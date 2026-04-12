@@ -43,6 +43,31 @@ class TestDiscoverPlugins:
             assert result == {}
 
 
+class TestDiscoverPluginsEdgeCases:
+    """Test discover_plugins edge cases for uncovered lines (42-45, 54-55)."""
+
+    def test_entry_points_not_dict_or_selectable(self):
+        """Test when entry_points is neither dict nor has select (lines 44-45)."""
+        from infrastructure.plugin_system import discover_plugins
+
+        with patch("importlib.metadata.entry_points") as mock_eps:
+            # Return something that has no select and is not a dict
+            mock_eps.return_value = "invalid_type"
+
+            result = discover_plugins()
+            assert result == {}
+
+    def test_entry_points_exception(self):
+        """Test when entry_points() raises exception (lines 54-55)."""
+        from infrastructure.plugin_system import discover_plugins
+
+        with patch("importlib.metadata.entry_points") as mock_eps:
+            mock_eps.side_effect = Exception("Entry point access failed")
+
+            result = discover_plugins()
+            assert result == {}
+
+
 class TestCustomAdapterRegistry:
     def setup_method(self):
         """Clear registry before each test."""

@@ -106,3 +106,23 @@ class TestExecuteWithRetry:
             max_retries=2,
         )
         assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_execute_all_retries_fail(self):
+        """Test _execute_with_retry when all retries fail (line 58)."""
+        mock_client = AsyncMock()
+        mock_client.execute_command = AsyncMock(
+            side_effect=ConnectionError("always fails")
+        )
+
+        result = await _execute_with_retry(
+            client=mock_client,
+            command=["echo", "hello"],
+            working_dir=".",
+            timeout=30,
+            max_retries=5,
+        )
+        assert "error" in result
+        assert "5 attempts" in result["error"]
+        assert "suggestion" in result
+        assert "DesktopCommander" in result["suggestion"]

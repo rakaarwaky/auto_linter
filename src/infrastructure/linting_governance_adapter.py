@@ -25,9 +25,9 @@ def get_layer_rules() -> List[Tuple[str, str, str]]:
     """Get governance rules - from config if available, else default."""
     try:
         from infrastructure.config_json_provider import load_json_config
-        from infrastructure.config_validation_provider import load_yaml_config
+        from infrastructure.config_validation_provider import load_config
 
-        config = load_json_config() or load_yaml_config()
+        config = load_json_config() or load_config()
         if config and hasattr(config, 'governance_rules') and config.governance_rules:
             rules = []
             for rule in config.governance_rules:
@@ -56,9 +56,9 @@ def get_layer_map() -> dict:
     }
     try:
         from infrastructure.config_json_provider import load_json_config
-        from infrastructure.config_validation_provider import load_yaml_config
+        from infrastructure.config_validation_provider import load_config
 
-        config = load_json_config() or load_yaml_config()
+        config = load_json_config() or load_config()
         if config and hasattr(config, 'layer_map') and config.layer_map:
             merged = default_map.copy()
             merged.update(config.layer_map)

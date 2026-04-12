@@ -1,7 +1,8 @@
 """Tests for MCP command catalog."""
 import json
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+from pathlib import Path
 from surfaces.mcp_command_catalog import (
     list_commands, read_skill_context,
     register_list_commands, register_read_skill_context,
@@ -71,10 +72,42 @@ class TestReadSkillContext:
 
     @pytest.mark.asyncio
     async def test_read_skill_context_skilmd_missing(self):
-        # Just verify it doesn't crash - returns TOC or error
-        result = await read_skill_context()
-        data = json.loads(result)
-        assert isinstance(data, dict)
+        """Test read_skill_context when SKILL.md is missing (line 55)."""
+        with patch.object(Path, "exists", return_value=False):
+            result = await read_skill_context()
+            data = json.loads(result)
+            assert "error" in data
+            assert "SKILL.md not found" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_read_skill_context_with_section_found(self):
+        """Test read_skill_context with section parameter (line 66)."""
+        with patch.object(Path, "exists", return_value=True), \
+             patch.object(Path, "read_text", return_value="## Getting Started\nSome content\n## Usage\nMore content"):
+            result = await read_skill_context(section="Getting")
+            data = json.loads(result)
+            assert "section" in data
+            assert "content" in data
+
+    @pytest.mark.asyncio
+    async def test_read_skill_context_section_not_found(self):
+        """Test read_skill_context when section doesn't exist."""
+        with patch.object(Path, "exists", return_value=True), \
+             patch.object(Path, "read_text", return_value="## Getting Started\nSome content"):
+            result = await read_skill_context(section="NonExistent")
+            data = json.loads(result)
+            assert "error" in data
+            assert "not found" in data["error"]
+
+    @pytest.mark.asyncio
+    async def test_read_skill_context_read_exception(self):
+        """Test read_skill_context when file reading fails."""
+        with patch.object(Path, "exists", return_value=True), \
+             patch.object(Path, "read_text", side_effect=PermissionError("denied")):
+            result = await read_skill_context()
+            data = json.loads(result)
+            assert "error" in data
+            assert "Failed to read" in data["error"]
 
 
 class TestRegisterFunctions:
