@@ -1,12 +1,8 @@
 """Comprehensive tests for surfaces/cli_setup_commands.py."""
 
-import json
-import os
-import platform
-import pytest
 import shutil
 from click.testing import CliRunner
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from pathlib import Path
 from surfaces.cli_setup_commands import setup
 

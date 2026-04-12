@@ -12,12 +12,12 @@ Uses `mcp.server.fastmcp.FastMCP` for the MCP server interface. Works with Deskt
 
 ## Choose Your Path
 
-| I'm a... | Start Here | What I'll Do |
-| -------- | --------- | ------------|
-| **User** | [Quick Start](#quick-start) | Lint my code, set up CI |
-| **Developer** | [Development Setup](#setup) | Add features, fix bugs |
+| I'm a...                | Start Here                                          | What I'll Do               |
+| ----------------------- | --------------------------------------------------- | -------------------------- |
+| **User**                | [Quick Start](#quick-start)                         | Lint my code, set up CI    |
+| **Developer**           | [Development Setup](#setup)                         | Add features, fix bugs     |
 | **Adapter Contributor** | [Contributing: Add Adapter](#how-to-add-an-adapter) | Integrate new linter tools |
-| **CLI Contributor** | [Contributing: Add CLI](#how-to-add-a-cli-command) | Add new CLI commands |
+| **CLI Contributor**     | [Contributing: Add CLI](#how-to-add-a-cli-command)  | Add new CLI commands       |
 
 ---
 
@@ -25,25 +25,25 @@ Uses `mcp.server.fastmcp.FastMCP` for the MCP server interface. Works with Deskt
 
 ### For Users
 
-| Benefit | Description |
-| ------- |-------------|
-| **Zero Config** | Works out-of-the-box with sensible defaults |
-| **Multi-Language** | Python, JavaScript, TypeScript in one tool |
-| **AI Ready** | MCP server for automated code review |
-| **Governance** | Architectural rule enforcement (AES, Clean, Hexagonal, DDD) |
-| **CI-Ready** | SARIF, JUnit, JSON reports with exit codes |
-| **Auto-Fix** | Safe fixes applied automatically |
-| **Quality Trends** | Track code quality over time |
+| Benefit            | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| **Zero Config**    | Works out-of-the-box with sensible defaults                 |
+| **Multi-Language** | Python, JavaScript, TypeScript in one tool                  |
+| **AI Ready**       | MCP server for automated code review                        |
+| **Governance**     | Architectural rule enforcement (AES, Clean, Hexagonal, DDD) |
+| **CI-Ready**       | SARIF, JUnit, JSON reports with exit codes                  |
+| **Auto-Fix**       | Safe fixes applied automatically                            |
+| **Quality Trends** | Track code quality over time                                |
 
 ### For Contributors
 
-| Benefit | Description |
-| ------- |-------------|
-| **Well-Structured** | 5-domain architecture with clear boundaries |
-| **Comprehensive Tests** | 800+ tests, 80%+ coverage |
+| Benefit                 | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| **Well-Structured**     | 5-domain architecture with clear boundaries    |
+| **Comprehensive Tests** | 800+ tests, 80%+ coverage                      |
 | **Governance Built-In** | Linting governance adapter prevents violations |
-| **Clear Paths** | Documented guides for adapters, CLI, MCP |
-| **Active Project** | Regular updates, responsive maintainer |
+| **Clear Paths**         | Documented guides for adapters, CLI, MCP       |
+| **Active Project**      | Regular updates, responsive maintainer         |
 
 ---
 
@@ -127,13 +127,13 @@ Copy the output to your MCP config file.
 
 The server registers 5 MCP tools:
 
-| Tool                   | Description                                           |
-| ---------------------- | ----------------------------------------------------- |
-| `execute_command`    | Execute any CLI command                               |
-| `list_commands`      | List all available CLI commands with descriptions     |
-| `read_skill_context` | Read SKILL.md documentation sections                  |
-| `check_status`       | Check status of running lint jobs                     |
-| `health_check`       | Check DesktopCommander and transport health           |
+| Tool                 | Description                                       |
+| -------------------- | ------------------------------------------------- |
+| `execute_command`    | Execute any CLI command                           |
+| `list_commands`      | List all available CLI commands with descriptions |
+| `read_skill_context` | Read SKILL.md documentation sections              |
+| `check_status`       | Check status of running lint jobs                 |
+| `health_check`       | Check DesktopCommander and transport health       |
 
 > **Note**: Job cancellation is a CLI command: `auto-lint cancel <job_id>`
 
@@ -159,29 +159,29 @@ The default socket path is `/run/desktop-commander/socket`. Set `DESKTOP_COMMAND
 
 ### Core
 
-| Command                    | Description                                     |
-| -------------------------- | ----------------------------------------------- |
-| `check <path>`           | Run all linters, check governance score         |
-|                          | `--git-diff` flag: only lint changed files      |
-| `scan <path>`            | Alias for check (CI-friendly)                   |
-| `fix <path>`             | Apply safe fixes automatically                  |
-| `report <path>`          | Generate quality report (text/json/sarif/junit) |
-| `ci <path>`              | CI-optimized with exit codes                    |
+| Command         | Description                                     |
+| --------------- | ----------------------------------------------- |
+| `check <path>`  | Run all linters, check governance score         |
+|                 | `--git-diff` flag: only lint changed files      |
+| `scan <path>`   | Alias for check (CI-friendly)                   |
+| `fix <path>`    | Apply safe fixes automatically                  |
+| `report <path>` | Generate quality report (text/json/sarif/junit) |
+| `ci <path>`     | CI-optimized with exit codes                    |
 
 ### Scans
 
-| Command                 | Description                    |
-| ----------------------- | ------------------------------ |
+| Command               | Description                    |
+| --------------------- | ------------------------------ |
 | `security <path>`     | Bandit vulnerability scanning  |
-| `complexity <path>` | Cyclomatic complexity analysis |
-| `duplicates <path>` | Code duplication detection     |
-| `trends <path>`     | Quality trends over time       |
+| `complexity <path>`   | Cyclomatic complexity analysis |
+| `duplicates <path>`   | Code duplication detection     |
+| `trends <path>`       | Quality trends over time       |
 | `dependencies <path>` | Dependency vulnerability scan  |
 
 ### Setup
 
-| Command              | Description                                |
-| -------------------- | ------------------------------------------ |
+| Command            | Description                                |
+| ------------------ | ------------------------------------------ |
 | `setup init`       | Auto-configure for your system             |
 | `setup hermes`     | Auto-install into Hermes Agent             |
 | `setup doctor`     | Diagnose configuration issues              |
@@ -189,38 +189,38 @@ The default socket path is `/run/desktop-commander/socket`. Set `DESKTOP_COMMAND
 
 ### Dev
 
-| Command                       | Description                                 |
-| ----------------------------- | ------------------------------------------- |
-| `diff <path1> <path2>`     | Compare lint results between two versions   |
-| `suggest <path>`           | AI-powered fix suggestions (--ai flag)      |
-| `config show\|edit\|reset`   | View, edit, or reset configuration settings |
-| `export sarif\|junit\|json`  | Export lint reports to file (-o output)     |
-| `import <config.json>`  | Import configurations from file            |
-| `ignore <rule>`            | Manage ignore rules (--remove to delete)    |
-| `init`                     | Initialize a new Auto-Linter configuration  |
-| `install-hook`             | Install git pre-commit hook                 |
-| `uninstall-hook`           | Remove git pre-commit hook                  |
+| Command                     | Description                                 |
+| --------------------------- | ------------------------------------------- |
+| `diff <path1> <path2>`      | Compare lint results between two versions   |
+| `suggest <path>`            | AI-powered fix suggestions (--ai flag)      |
+| `config show\|edit\|reset`  | View, edit, or reset configuration settings |
+| `export sarif\|junit\|json` | Export lint reports to file (-o output)     |
+| `import <config.json>`      | Import configurations from file             |
+| `ignore <rule>`             | Manage ignore rules (--remove to delete)    |
+| `init`                      | Initialize a new Auto-Linter configuration  |
+| `install-hook`              | Install git pre-commit hook                 |
+| `uninstall-hook`            | Remove git pre-commit hook                  |
 
 ### Maintenance
 
-| Command            | Description              |
-| ------------------ | ------------------------ |
-| `cancel <job_id>` | Cancel a running job     |
-| `stats <path>`    | Statistics dashboard     |
-| `clean`           | Cleanup cache            |
-| `update`          | Update adapters          |
-| `doctor`          | Diagnose issues          |
-| `version`         | Show version             |
-| `adapters`        | List enabled linters     |
+| Command           | Description          |
+| ----------------- | -------------------- |
+| `cancel <job_id>` | Cancel a running job |
+| `stats <path>`    | Statistics dashboard |
+| `clean`           | Cleanup cache        |
+| `update`          | Update adapters      |
+| `doctor`          | Diagnose issues      |
+| `version`         | Show version         |
+| `adapters`        | List enabled linters |
 
 ### Other
 
-| Command                        | Description                          |
-| ------------------------------ | ------------------------------------ |
-| `watch <path>`               | Watch files and auto-lint on changes |
-| `batch <path1> <path2>`      | Check multiple paths                 |
-| `plugins`                    | List discovered plugins              |
-| `multi-project <paths...>`   | Lint multiple projects, aggregate    |
+| Command                    | Description                          |
+| -------------------------- | ------------------------------------ |
+| `watch <path>`             | Watch files and auto-lint on changes |
+| `batch <path1> <path2>`    | Check multiple paths                 |
+| `plugins`                  | List discovered plugins              |
+| `multi-project <paths...>` | Lint multiple projects, aggregate    |
 
 Full list: `auto-lint --help`
 
@@ -240,7 +240,7 @@ PHANTOM_ROOT=$HOME/
 
 Create with: `auto-lint setup init`
 
-### auto_linter.config.yaml 
+### auto_linter.config.yaml
 
 ```yaml
 thresholds:

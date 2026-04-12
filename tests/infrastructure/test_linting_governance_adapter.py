@@ -1,9 +1,7 @@
 """Tests for infrastructure/linting_governance_adapter.py — boost coverage from 19%."""
 
-import pytest
 import tempfile
 import os
-import shutil
 from infrastructure.linting_governance_adapter import (
     _extract_imports,
     _detect_layer,
@@ -11,9 +9,7 @@ from infrastructure.linting_governance_adapter import (
     get_layer_rules,
     get_layer_map,
     GovernanceAdapter,
-    GOVERNANCE_CODE,
 )
-from taxonomy import LintResult, Severity
 
 
 # ── _extract_imports ──────────────────────────────────────────────

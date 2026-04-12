@@ -1,6 +1,5 @@
 """Tests for plugin_system module."""
 
-import pytest
 from unittest.mock import MagicMock, patch
 from infrastructure.plugin_system import (
     discover_plugins,

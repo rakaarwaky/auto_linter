@@ -1,7 +1,7 @@
 """Comprehensive tests for lint_result_entity.py — 100% coverage."""
 
 import pytest
-from taxonomy.lint_value_vo import Severity, ErrorCode, Position, Score
+from taxonomy.lint_value_vo import Severity, ErrorCode, Position
 from taxonomy.lint_identifier_vo import FilePath, AdapterName
 from taxonomy.lint_domain_vo import ScopeRef, Location
 from taxonomy.lint_result_entity import (

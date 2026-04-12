@@ -1,6 +1,5 @@
 """Comprehensive tests for capabilities/naming_variant_generator.py — 100% coverage."""
 
-import pytest
 from capabilities.naming_variant_generator import get_variant_dict, build_variants
 
 

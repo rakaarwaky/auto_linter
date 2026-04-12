@@ -1,6 +1,5 @@
 """Tests for MCP tools registry."""
 
-import pytest
 from unittest.mock import MagicMock
 from surfaces.mcp_tools_registry import register_tools
 

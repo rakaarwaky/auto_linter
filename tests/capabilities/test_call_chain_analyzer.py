@@ -1,10 +1,8 @@
 """Comprehensive tests for capabilities/call_chain_analyzer.py — 100% coverage."""
 
-import pytest
 import tempfile
 import os
 from capabilities.call_chain_analyzer import CallChainAnalyzer
-from taxonomy import FilePath, SymbolName
 
 
 class TestCallChainAnalyzer:

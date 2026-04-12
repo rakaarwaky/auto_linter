@@ -1,6 +1,5 @@
 """Comprehensive tests for capabilities/scope_boundary_analyzer.py — 100% coverage."""
 
-import pytest
 import tempfile
 import os
 from capabilities.scope_boundary_analyzer import (

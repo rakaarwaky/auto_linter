@@ -1,6 +1,5 @@
 """Enhanced tests for surfaces/cli_maintenance_commands.py — fill gaps."""
 
-import pytest
 from click.testing import CliRunner
 from unittest.mock import MagicMock, patch
 from surfaces.cli_maintenance_commands import register_maintenance_commands

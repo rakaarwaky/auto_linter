@@ -1,4 +1,3 @@
-import json
 import pytest
 from unittest.mock import MagicMock, patch
 from taxonomy.lint_result_models import LintResult, Severity, GovernanceReport

@@ -1,7 +1,6 @@
 """Comprehensive tests for infrastructure/path_normalization_util.py — 100% coverage."""
 
 import os
-import pytest
 from unittest.mock import patch
 from infrastructure.path_normalization_util import normalize_path
 

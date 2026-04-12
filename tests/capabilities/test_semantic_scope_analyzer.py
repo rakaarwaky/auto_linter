@@ -1,133 +1,237 @@
 """Tests for capabilities/semantic_scope_analyzer.py."""
 
+import os
 import pytest
 from pathlib import Path
-from unittest.mock import MagicMock, patch, AsyncMock
 from capabilities.semantic_scope_analyzer import SemanticScopeAnalyzer
+from taxonomy.lint_identifier_vo import SymbolName, FilePath, DirectoryPath
 
 
 class TestSemanticScopeAnalyzer:
-    """Test SemanticScopeAnalyzer class."""
-
     def test_analyzer_initialization(self):
-        """Test analyzer initialization."""
         analyzer = SemanticScopeAnalyzer()
         assert analyzer is not None
 
-    def test_get_variant_dict(self):
-        """Test get_variant_dict method."""
+    def test_get_variant_dict_snake(self):
         analyzer = SemanticScopeAnalyzer()
-        result = analyzer.get_variant_dict("my_variable")
-        assert "snake_case" in result
-        assert result["snake_case"] == "my_variable"
+        result = analyzer.get_variant_dict("hello_world")
+        assert result["snake_case"] == "hello_world"
+        assert result["camel_case"] == "helloWorld"
+        assert result["pascal_case"] == "HelloWorld"
+        assert result["screaming_snake"] == "HELLO_WORLD"
 
-    def test_get_variant_dict_camel_case(self):
-        """Test get_variant_dict with camelCase input."""
+    def test_get_variant_dict_camel(self):
         analyzer = SemanticScopeAnalyzer()
-        result = analyzer.get_variant_dict("myVariable")
-        assert "camel_case" in result
+        result = analyzer.get_variant_dict("helloWorld")
+        assert "hello" in result["snake_case"]
+        assert "world" in result["snake_case"]
 
-    def test_get_variant_dict_with_symbol_name(self):
-        """Test get_variant_dict with SymbolName."""
-        from taxonomy import SymbolName
+    def test_get_variant_dict_pascal(self):
         analyzer = SemanticScopeAnalyzer()
-        # Try with direct string - more reliable
-        result = analyzer.get_variant_dict("test_name")
-        assert isinstance(result, dict)
+        result = analyzer.get_variant_dict("HelloWorld")
+        assert result["pascal_case"] == "HelloWorld"
+
+    def test_get_variant_dict_single_word(self):
+        analyzer = SemanticScopeAnalyzer()
+        result = analyzer.get_variant_dict("test")
+        assert result["snake_case"] == "test"
+        assert result["pascal_case"] == "Test"
+
+    def test_get_variant_dict_empty(self):
+        analyzer = SemanticScopeAnalyzer()
+        result = analyzer.get_variant_dict("")
+        assert result["snake_case"] == ""
+        assert result["screaming_snake"] == ""
+
+    def test_get_variant_dict_with_numbers(self):
+        analyzer = SemanticScopeAnalyzer()
+        result = analyzer.get_variant_dict("test123")
+        assert "123" in result["snake_case"]
+
+    def test_get_variant_dict_symbol_name(self):
+        analyzer = SemanticScopeAnalyzer()
+        result = analyzer.get_variant_dict(SymbolName(value="hello_world"))
+        assert result["snake_case"] == "hello_world"
 
     def test_build_variants(self):
-        """Test build_variants method."""
         analyzer = SemanticScopeAnalyzer()
-        result = analyzer.build_variants("my_function")
-        assert isinstance(result, list)
-        assert len(result) > 0
+        result = analyzer.build_variants("hello_world")
+        assert "hello_world" in result
+        assert "helloWorld" in result
+        assert "HelloWorld" in result
+        assert "HELLO_WORLD" in result
+        assert "hello-world" in result
 
     def test_build_variants_empty(self):
-        """Test build_variants with empty string."""
         analyzer = SemanticScopeAnalyzer()
         result = analyzer.build_variants("")
-        assert isinstance(result, list)
+        assert "" in result
+
+    def test_build_variants_symbol_name(self):
+        analyzer = SemanticScopeAnalyzer()
+        result = analyzer.build_variants(SymbolName(value="hello_world"))
+        assert "hello_world" in result
 
 
 class TestShowEnclosingScope:
-    """Test show_enclosing_scope method."""
-
-    @patch("capabilities.semantic_scope_analyzer.SemanticScopeAnalyzer")
-    def test_show_enclosing_scope_nonexistent_file(self, MockAnalyzer):
-        """Test with non-existent file."""
+    def test_nonexistent_file(self):
         analyzer = SemanticScopeAnalyzer()
         result = analyzer.show_enclosing_scope("/nonexistent/file.py", 10)
-        # May return None or handle gracefully
+        assert result is None
 
-    def test_show_enclosing_scope_mock(self):
-        """Test show_enclosing_scope with mocked file."""
+    def test_syntax_error_file(self, tmp_path):
         analyzer = SemanticScopeAnalyzer()
-        with patch.object(Path, "exists", return_value=False):
-            result = analyzer.show_enclosing_scope("/test.py", 1)
+        f = tmp_path / "bad.py"
+        f.write_text("def foo(:\n")
+        result = analyzer.show_enclosing_scope(str(f), 1)
+        assert result is None
+
+    def test_function_scope(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("def outer():\n    def inner():\n        x = 1\n")
+        result = analyzer.show_enclosing_scope(str(f), 3)
+        assert result is not None
+        assert "inner" in result.name
+
+    def test_class_scope(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("class MyClass:\n    def method(self):\n        pass\n")
+        result = analyzer.show_enclosing_scope(str(f), 2)
+        assert result is not None
+        assert "MyClass" in result.name
+
+    def test_no_enclosing_scope(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("x = 1\ny = 2\n")
+        result = analyzer.show_enclosing_scope(str(f), 1)
+        assert result is None
+
+    def test_with_filepath_value(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("def foo():\n    x = 1\n")
+        result = analyzer.show_enclosing_scope(FilePath(value=str(f)), 2)
+        assert result is not None
 
 
 class TestFindFlow:
-    """Test find_flow method."""
-
-    def test_find_flow_nonexistent_file(self):
-        """Test find_flow with non-existent file."""
+    def test_nonexistent_file(self):
         analyzer = SemanticScopeAnalyzer()
-        result = analyzer.find_flow("/nonexistent/file.py", "my_var")
-        assert isinstance(result, list)
+        result = analyzer.find_flow("/nonexistent/file.py", "x")
+        assert result == []
 
-    def test_find_flow_with_start_line(self):
-        """Test find_flow with start_line parameter."""
+    def test_syntax_error_file(self, tmp_path):
         analyzer = SemanticScopeAnalyzer()
-        with patch.object(Path, "exists", return_value=False):
-            result = analyzer.find_flow("/test.py", "var", start_line=5)
-            assert isinstance(result, list)
+        f = tmp_path / "bad.py"
+        f.write_text("def foo(:\n")
+        result = analyzer.find_flow(str(f), "x")
+        assert result == []
 
+    def test_assignment_and_usage(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("x = 1\nprint(x)\n")
+        result = analyzer.find_flow(str(f), "x")
+        assert len(result) == 2
+        assert "Assignment" in result[0]
+        assert "Usage" in result[1]
 
-class TestExtractLineno:
-    """Test extract_lineno helper function."""
+    def test_with_start_line(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("def foo():\n    x = 1\n    print(x)\n")
+        result = analyzer.find_flow(str(f), "x", start_line=2)
+        assert len(result) >= 1
 
-    def test_extract_lineno_simple(self):
-        """Test extract_lineno with simple format string."""
-        # Skip - needs proper implementation
-        pass
+    def test_no_variable(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("y = 1\n")
+        result = analyzer.find_flow(str(f), SymbolName(value="x"))
+        assert result == []
 
-    def test_extract_lineno_no_lineno(self):
-        """Test extract_lineno without lineno."""
-        # Skip - needs proper implementation  
-        pass
+    def test_method_call(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("obj = MyClass()\nobj.do_something()\n")
+        result = analyzer.find_flow(str(f), "obj")
+        assert any("Mutation" in r for r in result)
 
 
 class TestTraceCallChain:
-    """Test trace_call_chain method."""
-
-    def test_trace_call_chain_nonexistent_dir(self):
-        """Test trace_call_chain with non-existent directory."""
+    def test_single_caller(self, tmp_path):
         analyzer = SemanticScopeAnalyzer()
-        result = analyzer.trace_call_chain("/nonexistent/dir", "my_func")
-        assert isinstance(result, list)
+        f = tmp_path / "test.py"
+        f.write_text("def foo():\n    pass\n\ndef bar():\n    foo()\n")
+        result = analyzer.trace_call_chain(str(tmp_path), "foo")
+        assert len(result) >= 1
+        assert "foo()" in result[0]
 
-    def test_trace_call_chain_with_symbol_name(self):
-        """Test trace_call_chain with SymbolName."""
+    def test_no_callers(self, tmp_path):
         analyzer = SemanticScopeAnalyzer()
-        # Use string instead of SymbolName to avoid validation issues
-        with patch.object(Path, "exists", return_value=False):
-            result = analyzer.trace_call_chain("/test", "test_func")
-            assert isinstance(result, list)
+        f = tmp_path / "test.py"
+        f.write_text("def foo():\n    pass\n")
+        result = analyzer.trace_call_chain(str(tmp_path), "foo")
+        assert result == []
+
+    def test_with_symbol_name(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("def foo():\n    pass\n\ndef bar():\n    foo()\n")
+        result = analyzer.trace_call_chain(str(tmp_path), SymbolName(value="foo"))
+        assert len(result) >= 1
+
+    def test_ioerror_handling(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("def foo():\n    pass\n")
+        os.chmod(str(f), 0o000)
+        result = analyzer.trace_call_chain(str(tmp_path), "foo")
+        os.chmod(str(f), 0o644)
+        assert result == []
+
+    def test_multiple_files(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        (tmp_path / "a.py").write_text("def foo():\n    pass\n")
+        (tmp_path / "b.py").write_text("def bar():\n    foo()\n")
+        result = analyzer.trace_call_chain(str(tmp_path), "foo")
+        assert len(result) >= 1
 
 
 class TestProjectWideRename:
-    """Test project_wide_rename method."""
-
-    def test_project_wide_rename_nonexistent_dir(self):
-        """Test project_wide_rename with non-existent directory."""
+    def test_basic_rename(self, tmp_path):
         analyzer = SemanticScopeAnalyzer()
-        result = analyzer.project_wide_rename("/nonexistent/dir", "old_name", "new_name")
-        assert isinstance(result, int)
+        f = tmp_path / "test.py"
+        f.write_text("def old_name():\n    old_name()\n")
+        count = analyzer.project_wide_rename(str(tmp_path), "old_name", "new_name")
+        assert count == 1
+        assert "new_name" in f.read_text()
 
-    def test_project_wide_rename_with_symbol_name(self):
-        """Test project_wide_rename with SymbolName."""
+    def test_skip_strings_and_comments(self, tmp_path):
         analyzer = SemanticScopeAnalyzer()
-        # Use strings instead of SymbolName to avoid validation issues
-        with patch.object(Path, "exists", return_value=False):
-            result = analyzer.project_wide_rename("/test", "old_func", "new_func")
-            assert isinstance(result, int)
+        f = tmp_path / "test.py"
+        f.write_text('"""old_name"""\n# old_name\nx = 1\n')
+        count = analyzer.project_wide_rename(str(tmp_path), "old_name", "new_name")
+        assert count == 0
+
+    def test_nonexistent_dir(self):
+        analyzer = SemanticScopeAnalyzer()
+        count = analyzer.project_wide_rename("/nonexistent/dir", "old", "new")
+        assert count == 0
+
+    def test_with_directory_path(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("old_name = 1\n")
+        count = analyzer.project_wide_rename(DirectoryPath(value=str(tmp_path)), SymbolName(value="old_name"), SymbolName(value="new_name"))
+        assert count == 1
+
+    def test_no_match(self, tmp_path):
+        analyzer = SemanticScopeAnalyzer()
+        f = tmp_path / "test.py"
+        f.write_text("foo = 1\n")
+        count = analyzer.project_wide_rename(str(tmp_path), "bar", "baz")
+        assert count == 0

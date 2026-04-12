@@ -9,12 +9,9 @@ Tests both HTTP and Unix Socket protocols to ensure:
 """
 
 import pytest
-import asyncio
 import os
-import tempfile
 import socket
-from pathlib import Path
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, patch
 
 # Import the client
 from infrastructure.desktop_commander_adapter import (

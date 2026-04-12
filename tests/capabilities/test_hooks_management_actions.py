@@ -1,6 +1,5 @@
 """Comprehensive tests for capabilities/hooks_management_actions.py — 100% coverage."""
 
-import pytest
 from unittest.mock import MagicMock
 from capabilities.hooks_management_actions import HookManagementUseCase
 

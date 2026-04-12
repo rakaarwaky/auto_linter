@@ -1,7 +1,6 @@
 """Tests for MCP server entry point."""
 
 import os
-import pytest
 from unittest.mock import MagicMock, patch
 from surfaces.mcp_server_entry import main
 
@@ -24,7 +23,6 @@ class TestMCPServerEntry:
                         main()
 
                         # Verify FastMCP was created with correct name
-                        from mcp.server.fastmcp import FastMCP
                         # FastMCP should have been called
                         assert mock_mcp.run.called or True  # Patched, so just verify setup
                         mock_register.assert_called_once_with(mock_mcp, mock_container)
@@ -55,7 +53,6 @@ class TestMCPServerEntry:
 
     def test_main_venv_path_patch(self):
         """Test that venv bin is added to PATH if missing."""
-        import sys
         original_path = os.environ.get("PATH", "")
         # Clear PATH temporarily
         os.environ["PATH"] = ""

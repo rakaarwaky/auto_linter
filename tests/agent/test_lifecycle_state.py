@@ -1,6 +1,5 @@
 """Comprehensive tests for agent/lifecycle_state_manager.py — 100% coverage."""
 
-import pytest
 from agent.lifecycle_state_manager import AgentState, get_state
 
 

@@ -2,7 +2,6 @@
 
 import os
 import sys
-import pytest
 import builtins
 from click.testing import CliRunner
 from unittest.mock import MagicMock, patch, AsyncMock

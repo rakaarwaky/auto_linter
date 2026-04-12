@@ -3,7 +3,7 @@
 import pytest
 import socket
 import json
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, patch
 from infrastructure.unix_socket_client import UnixSocketClient
 
 

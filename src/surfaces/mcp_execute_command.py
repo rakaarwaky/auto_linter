@@ -1,5 +1,8 @@
 """MCP Tool: execute_command - Universal CLI executor via DesktopCommander."""
 import json
+import shutil
+import sys
+import os
 from datetime import datetime, UTC
 from pathlib import Path
 
@@ -7,10 +10,16 @@ from surfaces.mcp_desktop_client import (
     _get_client,
     _execute_with_retry,
 )
-
 # Use agent's job tracking - this was previously duplicated here
 from agent.tracking_job_registry import create_job, complete_job, fail_job
 
+
+# Resolve auto-lint binary path at import time
+# Priority: venv bin → system PATH
+_auto_lint_path = shutil.which("auto-lint", path=os.path.dirname(sys.executable))
+if not _auto_lint_path:
+    _auto_lint_path = shutil.which("auto-lint")
+_auto_lint_cmd = _auto_lint_path or "auto-lint"  # fallback if not installed yet
 # Runtime jobs dict for backward compatibility - delegates to agent
 _running_jobs: dict = {}
 
@@ -81,7 +90,7 @@ def register_execute_command(mcp):
 
         args = args or {}
         path = args.get('path', '.')
-        cli_cmd = ["auto-lint", normalized_action, path]
+        cli_cmd = [_auto_lint_cmd, normalized_action, path]
 
         for key, value in args.items():
             if key != 'path':

@@ -1,6 +1,5 @@
 """Comprehensive tests for surfaces/cli_core_commands.py — 100% coverage."""
 
-import pytest
 from click.testing import CliRunner
 from surfaces.cli_core_commands import cli
 

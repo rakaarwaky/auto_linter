@@ -2,7 +2,7 @@
 import json
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 from surfaces.mcp_command_catalog import list_commands, read_skill_context
 
 

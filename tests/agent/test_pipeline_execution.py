@@ -1,9 +1,8 @@
 """Comprehensive tests for agent/pipeline_execution_orchestrator.py — 100% coverage."""
 
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock
 from agent.pipeline_execution_orchestrator import Pipeline
-from agent.tracking_job_registry import create_job, list_jobs
 
 
 @pytest.fixture

@@ -15,8 +15,7 @@ def normalize_path(path: str) -> str:
     phantom_root = os.environ.get("PHANTOM_ROOT", "/home/raka/src/")
     actual_root = os.environ.get("PROJECT_ROOT", "/persistent/home/raka/mcp-servers/auto_linter/src/")
     
-    # Debug
-    print(f"DEBUG: path={path}, phantom_root={phantom_root}, actual_root={actual_root}")
+
     
     if phantom_root in path:
         path = path.replace(phantom_root, actual_root)

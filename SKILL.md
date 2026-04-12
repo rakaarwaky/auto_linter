@@ -37,7 +37,7 @@ All CLI commands are accessible through this tool.
 List all available CLI commands with descriptions and examples.
 
 ```json
-{"domain": null}
+{ "domain": null }
 ```
 
 Returns: `{"check": {"description": "...", "example_usage": "auto-lint check /path"}, ...}`
@@ -47,7 +47,7 @@ Returns: `{"check": {"description": "...", "example_usage": "auto-lint check /pa
 Read SKILL.md documentation sections.
 
 ```json
-{"section": "mcp tools"}
+{ "section": "mcp tools" }
 ```
 
 ### `check_status(job_id: str | None)`
@@ -55,7 +55,7 @@ Read SKILL.md documentation sections.
 Check status of running lint jobs.
 
 ```json
-{"job_id": "abc12345"}
+{ "job_id": "abc12345" }
 ```
 
 > **Note**: To cancel a job, use CLI: `auto-lint cancel <job_id>`
@@ -79,66 +79,66 @@ Returns: `{"status": "...", "protocol": "...", ...}`
 
 ### Core
 
-| Command | Description |
-|---------|-------------|
-| `auto-lint check <path>` | Run all linters, check governance score |
-| `auto-lint scan <path>` | Alias for check (CI-friendly) |
-| `auto-lint fix <path>` | Apply safe fixes automatically |
+| Command                                 | Description                                     |
+| --------------------------------------- | ----------------------------------------------- |
+| `auto-lint check <path>`                | Run all linters, check governance score         |
+| `auto-lint scan <path>`                 | Alias for check (CI-friendly)                   |
+| `auto-lint fix <path>`                  | Apply safe fixes automatically                  |
 | `auto-lint report <path> --format json` | Generate quality report (text/json/sarif/junit) |
-| `auto-lint ci <path>` | CI mode with exit codes |
+| `auto-lint ci <path>`                   | CI mode with exit codes                         |
 
 ### Scans
 
-| Command | Description |
-|---------|-------------|
-| `auto-lint security <path>` | Bandit vulnerability scan |
-| `auto-lint complexity <path>` | Cyclomatic complexity analysis |
-| `auto-lint duplicates <path>` | Code duplication detection |
-| `auto-lint trends <path>` | Quality trends over time |
-| `auto-lint dependencies <path>` | Dependency vulnerability scan |
+| Command                         | Description                    |
+| ------------------------------- | ------------------------------ |
+| `auto-lint security <path>`     | Bandit vulnerability scan      |
+| `auto-lint complexity <path>`   | Cyclomatic complexity analysis |
+| `auto-lint duplicates <path>`   | Code duplication detection     |
+| `auto-lint trends <path>`       | Quality trends over time       |
+| `auto-lint dependencies <path>` | Dependency vulnerability scan  |
 
 ### Setup
 
-| Command | Description |
-|---------|-------------|
-| `auto-lint setup init` | Auto-configure environment |
-| `auto-lint setup hermes` | Auto-install into Hermes Agent |
-| `auto-lint setup doctor` | Diagnose issues |
-| `auto-lint setup mcp-config` | Print MCP config for clients |
+| Command                      | Description                    |
+| ---------------------------- | ------------------------------ |
+| `auto-lint setup init`       | Auto-configure environment     |
+| `auto-lint setup hermes`     | Auto-install into Hermes Agent |
+| `auto-lint setup doctor`     | Diagnose issues                |
+| `auto-lint setup mcp-config` | Print MCP config for clients   |
 
 ### Dev
 
-| Command | Description |
-|---------|-------------|
-| `auto-lint diff <path1> <path2>` | Compare lint results between two versions |
-| `auto-lint suggest <path>` | AI-powered fix suggestions (--ai flag) |
-| `auto-lint config show\|edit\|reset` | View, edit, or reset configuration settings |
-| `auto-lint export sarif\|junit\|json` | Export lint reports to file (-o output) |
-| `auto-lint import <config.json>` | Import configurations from file |
-| `auto-lint ignore <rule>` | Manage ignore rules (--remove to delete) |
-| `auto-lint init` | Initialize a new Auto-Linter configuration |
-| `auto-lint install-hook` | Install git pre-commit hook |
-| `auto-lint uninstall-hook` | Remove git pre-commit hook |
+| Command                               | Description                                 |
+| ------------------------------------- | ------------------------------------------- |
+| `auto-lint diff <path1> <path2>`      | Compare lint results between two versions   |
+| `auto-lint suggest <path>`            | AI-powered fix suggestions (--ai flag)      |
+| `auto-lint config show\|edit\|reset`  | View, edit, or reset configuration settings |
+| `auto-lint export sarif\|junit\|json` | Export lint reports to file (-o output)     |
+| `auto-lint import <config.json>`      | Import configurations from file             |
+| `auto-lint ignore <rule>`             | Manage ignore rules (--remove to delete)    |
+| `auto-lint init`                      | Initialize a new Auto-Linter configuration  |
+| `auto-lint install-hook`              | Install git pre-commit hook                 |
+| `auto-lint uninstall-hook`            | Remove git pre-commit hook                  |
 
 ### Maintenance
 
-| Command | Description |
-|---------|-------------|
+| Command                     | Description               |
+| --------------------------- | ------------------------- |
 | `auto-lint cancel <job_id>` | Cancel a running lint job |
-| `auto-lint stats <path>` | Statistics dashboard |
-| `auto-lint clean` | Cleanup cache |
-| `auto-lint update` | Update adapters |
-| `auto-lint doctor` | Diagnose issues |
-| `auto-lint version` | Show version |
-| `auto-lint adapters` | List enabled linters |
+| `auto-lint stats <path>`    | Statistics dashboard      |
+| `auto-lint clean`           | Cleanup cache             |
+| `auto-lint update`          | Update adapters           |
+| `auto-lint doctor`          | Diagnose issues           |
+| `auto-lint version`         | Show version              |
+| `auto-lint adapters`        | List enabled linters      |
 
 ### Other
 
-| Command | Description |
-|---------|-------------|
-| `auto-lint watch <path>` | Watch files, auto-lint on changes |
-| `auto-lint batch <p1> <p2>` | Check multiple paths |
-| `auto-lint plugins` | List discovered plugins |
+| Command                           | Description                       |
+| --------------------------------- | --------------------------------- |
+| `auto-lint watch <path>`          | Watch files, auto-lint on changes |
+| `auto-lint batch <p1> <p2>`       | Check multiple paths              |
+| `auto-lint plugins`               | List discovered plugins           |
 | `auto-lint multi-project <paths>` | Lint multiple projects, aggregate |
 
 ## Transport
@@ -157,16 +157,16 @@ Default socket: `/run/desktop-commander/socket`
 
 ## Adapters
 
-| Adapter | Language | Weight | Notes |
-|---------|----------|--------|-------|
-| ruff | Python | 1.0 | Formatting + linting |
-| mypy | Python | 1.0 | Type checking |
-| bandit | Python | 1.0 | Security scanning |
-| radon | Python | 1.0 | Complexity metrics |
-| eslint | JS/TS | 1.0 | Linting |
-| prettier | JS/TS | 0.5 | Formatting |
-| tsc | TypeScript | 1.0 | Type checking |
-| governance | All | 1.0 | Architecture rules |
+| Adapter    | Language   | Weight | Notes                |
+| ---------- | ---------- | ------ | -------------------- |
+| ruff       | Python     | 1.0    | Formatting + linting |
+| mypy       | Python     | 1.0    | Type checking        |
+| bandit     | Python     | 1.0    | Security scanning    |
+| radon      | Python     | 1.0    | Complexity metrics   |
+| eslint     | JS/TS      | 1.0    | Linting              |
+| prettier   | JS/TS      | 0.5    | Formatting           |
+| tsc        | TypeScript | 1.0    | Type checking        |
+| governance | All        | 1.0    | Architecture rules   |
 
 ## Configuration
 
@@ -191,7 +191,6 @@ thresholds:
 ## Governance Rules (Architecture Enforcement)
 
 Governance rules are **configurable** - by default empty, but you can define rules for your architecture.
-
 
 ### AES Architecture (Auto-Linter's Own)
 
@@ -220,7 +219,6 @@ governance_rules:
 ```
 
 ### Clean Architecture (Uncle Bob)
-
 
 ```yaml
 layer_map:

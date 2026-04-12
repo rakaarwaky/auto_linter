@@ -20,7 +20,9 @@ class RunAnalysisUseCase:
                     report.add_result(res)
             except Exception as e:
                 # In a real Agentic structure, we'd log this to an Infrastructure logger
-                print(f"Error in adapter {adapter.name()}: {e}")
+                import logging
+                logger = logging.getLogger("auto_linter.linting")
+                logger.error(f"Error in adapter {adapter.name()}: {e}")
 
         # Pass 2: Enrichment (Diagnostic Context Phase)
         for res in report.results:

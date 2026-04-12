@@ -6,9 +6,9 @@ project:
   name: auto-linter
 
 thresholds:
-  score: 80.0          # Minimum governance score (0-100)
-  complexity: 10       # Max cyclomatic complexity per function
-  max_file_lines: 500  # Max lines per file
+  score: 80.0 # Minimum governance score (0-100)
+  complexity: 10 # Max cyclomatic complexity per function
+  max_file_lines: 500 # Max lines per file
 
 adapters:
   - name: ruff

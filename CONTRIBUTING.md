@@ -185,14 +185,14 @@ python3 -m pytest tests/ --cov=src --cov-report=term-missing
 
 ### 1. Choose the right module
 
-| Module | Purpose |
-|--------|---------|
-| `cli_core_commands.py` | check, scan, fix, report, version, adapters, security, cancel |
-| `cli_analysis_commands.py` | complexity, duplicates, trends, dependencies, ci, batch |
-| `cli_dev_commands.py` | diff, suggest, ignore, config, export, import, init, install-hook, uninstall-hook |
-| `cli_maintenance_commands.py` | stats, clean, update, doctor, cancel |
-| `cli_setup_commands.py` | setup init, setup hermes, setup doctor, setup mcp-config |
-| `cli_watch_commands.py` | watch |
+| Module                        | Purpose                                                                           |
+| ----------------------------- | --------------------------------------------------------------------------------- |
+| `cli_core_commands.py`        | check, scan, fix, report, version, adapters, security, cancel                     |
+| `cli_analysis_commands.py`    | complexity, duplicates, trends, dependencies, ci, batch                           |
+| `cli_dev_commands.py`         | diff, suggest, ignore, config, export, import, init, install-hook, uninstall-hook |
+| `cli_maintenance_commands.py` | stats, clean, update, doctor, cancel                                              |
+| `cli_setup_commands.py`       | setup init, setup hermes, setup doctor, setup mcp-config                          |
+| `cli_watch_commands.py`       | watch                                                                             |
 
 Each file should stay under 300 lines. If it would exceed that,
 create a new `cli_<domain>_commands.py` file.

@@ -2,7 +2,6 @@
 
 import os
 import tempfile
-import pytest
 from infrastructure.git_hooks_manager import GitHookManager
 
 

@@ -1,6 +1,5 @@
 """Comprehensive tests for infrastructure/python_bandit_adapter.py — 100% coverage."""
 
-import pytest
 from unittest.mock import MagicMock, patch
 from infrastructure.python_bandit_adapter import BanditAdapter
 import json

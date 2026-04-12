@@ -1,6 +1,5 @@
 """Comprehensive tests for capabilities/data_flow_analyzer.py — 100% coverage."""
 
-import pytest
 import tempfile
 import os
 from capabilities.data_flow_analyzer import find_flow

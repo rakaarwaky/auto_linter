@@ -1,8 +1,7 @@
 """Additional tests for git-diff, plugins, and multi-project commands."""
 
-import pytest
 from click.testing import CliRunner
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from surfaces.cli_core_commands import cli
 from surfaces.cli_analysis_commands import register_analysis_commands
 from surfaces.cli_maintenance_commands import register_maintenance_commands

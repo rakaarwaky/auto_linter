@@ -43,7 +43,7 @@ Auto Linter solves all five.
 | Developers      | CLI (30+ commands)  | Local development, watch mode, git hooks                 |
 | CI/CD Pipelines | CLI + exit codes    | Quality gates, SARIF/JUnit reports                       |
 | Community       | pip install + setup | Easy install, works immediately                          |
-| Contributors    | GitHub + PRs        | Adapters, CLI commands, MCP tools                         |
+| Contributors    | GitHub + PRs        | Adapters, CLI commands, MCP tools                        |
 
 ---
 
@@ -79,7 +79,7 @@ Auto Linter solves all five.
 
 | ID     | Requirement                                     | Status |
 | ------ | ----------------------------------------------- | ------ |
-| FR-030 | MCP server via FastMCP (`mcp.server.fastmcp`) | Done   |
+| FR-030 | MCP server via FastMCP (`mcp.server.fastmcp`)   | Done   |
 | FR-031 | CLI via Click                                   | Done   |
 | FR-032 | DesktopCommander integration (socket/HTTP/auto) | Done   |
 | FR-033 | Git pre-commit hook install/uninstall           | Done   |
@@ -158,8 +158,8 @@ mcp_desktop_client.py   -- DesktopCommander adapter client
 
 ## 7. MCP Interface (5 Tools)
 
-| Tool                              | Purpose                                      |
-| --------------------------------- | -------------------------------------------- |
+| Tool                            | Purpose                                      |
+| ------------------------------- | -------------------------------------------- |
 | `execute_command(action, args)` | Execute any CLI command via DesktopCommander |
 | `list_commands(domain)`         | Discover available CLI commands              |
 | `read_skill_context(section)`   | Read SKILL.md documentation                  |
@@ -172,14 +172,14 @@ mcp_desktop_client.py   -- DesktopCommander adapter client
 
 ## 8. CLI Interface (30 Commands)
 
-| Category    | Commands                                                                |
-| ----------- | ----------------------------------------------------------------------- |
-| Core        | check, scan, fix, report, ci, version, adapters, security, cancel       |
-| Analysis    | complexity, duplicates, trends, dependencies, batch                     |
+| Category    | Commands                                                                          |
+| ----------- | --------------------------------------------------------------------------------- |
+| Core        | check, scan, fix, report, ci, version, adapters, security, cancel                 |
+| Analysis    | complexity, duplicates, trends, dependencies, batch                               |
 | Dev         | diff, suggest, ignore, config, export, import, init, install-hook, uninstall-hook |
-| Setup       | setup init, setup hermes, setup doctor, setup mcp-config                |
-| Maintenance | stats, clean, update, doctor                                            |
-| Other       | watch, plugins, multi-project                                           |
+| Setup       | setup init, setup hermes, setup doctor, setup mcp-config                          |
+| Maintenance | stats, clean, update, doctor                                                      |
+| Other       | watch, plugins, multi-project                                                     |
 
 ---
 
@@ -199,8 +199,8 @@ Default socket path: `/run/desktop-commander/socket`
 
 ### Environment Variables
 
-| Variable                   | Default                           | Description        |
-| -------------------------- | --------------------------------- | ------------------ |
+| Variable                 | Default                         | Description        |
+| ------------------------ | ------------------------------- | ------------------ |
 | `DESKTOP_COMMANDER_URL`  | `/run/desktop-commander/socket` | Transport endpoint |
 | `DESKTOP_COMMANDER_PORT` | `24680`                         | HTTP wrapper port  |
 | `PHANTOM_ROOT`           | `$HOME/`                        | JS/TS linter root  |
@@ -232,4 +232,4 @@ Default socket path: `/run/desktop-commander/socket`
 - DesktopCommander is required for MCP tool execution
 - No database required (file-based history only)
 - FastMCP for MCP server (decorator-based registration)
-- Platform Linux  Windows  Mac
+- Platform Linux Windows Mac

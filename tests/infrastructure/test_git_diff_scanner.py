@@ -1,8 +1,5 @@
 """Tests for git_diff_scanner module."""
 
-import json
-import os
-import pytest
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch

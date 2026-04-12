@@ -1,144 +1,108 @@
-"""Tests for MCP desktop client module."""
-
-import json
+"""Tests for MCP desktop client."""
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-from surfaces.mcp_desktop_client import (
-    _get_client,
-    _execute_with_retry,
-    DESKTOP_COMMANDER_URL,
-)
-from surfaces.mcp_execute_command import _running_jobs
+from surfaces.mcp_desktop_client import _get_client, _execute_with_retry
 
 
 class TestGetClient:
-    def test_get_client_returns_adapter(self):
-        """Test _get_client returns DesktopCommanderAdapter."""
-        from infrastructure.desktop_commander_adapter import DesktopCommanderAdapter
-        # Reset the singleton first
-        import surfaces.mcp_desktop_client as client_module
-        client_module._desktop_commander_client = None
+    def test_get_client_returns_instance(self):
+        mock_client = MagicMock()
+        with patch("agent.dependency_injection_container.get_container") as mock_gc:
+            container = MagicMock()
+            container.desktop_commander = mock_client
+            mock_gc.return_value = container
+            client = _get_client()
+        assert client is mock_client
 
-        client = _get_client()
-        assert client is not None
-        assert isinstance(client, DesktopCommanderAdapter)
-
-    def test_get_client_singleton(self):
-        """Test _get_client returns same instance on repeated calls."""
-        import surfaces.mcp_desktop_client as client_module
-        client_module._desktop_commander_client = None
-
-        client1 = _get_client()
-        client2 = _get_client()
-        assert client1 is client2
+    def test_get_client_caches(self):
+        mock_client = MagicMock()
+        with patch("agent.dependency_injection_container.get_container") as mock_gc:
+            container = MagicMock()
+            container.desktop_commander = mock_client
+            mock_gc.return_value = container
+            c1 = _get_client()
+            c2 = _get_client()
+        assert c1 is c2 is mock_client
 
 
 class TestExecuteWithRetry:
     @pytest.mark.asyncio
     async def test_execute_success_first_try(self):
-        """Test execute succeeds on first try."""
         mock_client = AsyncMock()
-        mock_client.execute_command = AsyncMock(return_value={
-            "stdout": "output", "stderr": "", "exit_code": 0
-        })
+        mock_client.execute_command = AsyncMock(return_value={"result": "ok"})
 
         result = await _execute_with_retry(
             client=mock_client,
-            command=["echo", "test"],
-            working_dir="/tmp",
-            timeout=30
+            command=["echo", "hello"],
+            working_dir=".",
+            timeout=30,
+            max_retries=3,
         )
-        assert "stdout" in result
+        assert result["result"] == "ok"
         mock_client.execute_command.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_execute_retry_then_success(self):
-        """Test execute retries then succeeds."""
+    async def test_execute_retries_on_connection_error(self):
+        call_count = [0]
         mock_client = AsyncMock()
-        mock_client.execute_command = AsyncMock(
-            side_effect=[
-                ConnectionError("Connection refused"),
-                {"stdout": "output", "stderr": "", "exit_code": 0}
-            ]
-        )
+
+        async def mock_execute(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] < 2:
+                raise ConnectionError("connection refused")
+            return {"result": "ok after retry"}
+
+        mock_client.execute_command = mock_execute
 
         result = await _execute_with_retry(
             client=mock_client,
-            command=["echo", "test"],
-            working_dir="/tmp",
+            command=["echo", "hello"],
+            working_dir=".",
             timeout=30,
-            max_retries=3
+            max_retries=3,
         )
-        assert "stdout" in result
-        assert mock_client.execute_command.call_count == 2
+        assert "ok after retry" in result["result"]
 
     @pytest.mark.asyncio
-    async def test_execute_all_retries_fail(self):
-        """Test execute fails after all retries."""
+    async def test_execute_returns_error_after_max_retries(self):
         mock_client = AsyncMock()
-        mock_client.execute_command = AsyncMock(
-            side_effect=ConnectionError("Connection refused")
-        )
+        mock_client.execute_command = AsyncMock(side_effect=ConnectionError("permanent error"))
 
         result = await _execute_with_retry(
             client=mock_client,
-            command=["echo", "test"],
-            working_dir="/tmp",
+            command=["echo", "hello"],
+            working_dir=".",
             timeout=30,
-            max_retries=3
+            max_retries=3,
         )
         assert "error" in result
-        assert "unavailable" in result["error"].lower()
-        assert mock_client.execute_command.call_count == 3
+        assert "3 attempts" in result["error"]
 
     @pytest.mark.asyncio
     async def test_execute_timeout_error(self):
-        """Test execute handles TimeoutError."""
         mock_client = AsyncMock()
-        mock_client.execute_command = AsyncMock(
-            side_effect=TimeoutError("Command timed out")
-        )
+        mock_client.execute_command = AsyncMock(side_effect=TimeoutError("timeout"))
 
         result = await _execute_with_retry(
             client=mock_client,
-            command=["sleep", "100"],
-            working_dir="/tmp",
+            command=["echo", "hello"],
+            working_dir=".",
             timeout=30,
-            max_retries=2
+            max_retries=2,
         )
         assert "error" in result
+        assert "2 attempts" in result["error"]
 
     @pytest.mark.asyncio
-    async def test_execute_os_error(self):
-        """Test execute handles OSError."""
+    async def test_execute_oserror_retried(self):
         mock_client = AsyncMock()
-        mock_client.execute_command = AsyncMock(
-            side_effect=OSError("OS error")
-        )
+        mock_client.execute_command = AsyncMock(side_effect=OSError("os error"))
 
         result = await _execute_with_retry(
             client=mock_client,
-            command=["test"],
-            working_dir="/tmp",
+            command=["echo", "hello"],
+            working_dir=".",
             timeout=30,
-            max_retries=2
+            max_retries=2,
         )
         assert "error" in result
-
-
-class TestRunningJobs:
-    def test_running_jobs_is_dict(self):
-        """Test _running_jobs is a dictionary."""
-        assert isinstance(_running_jobs, dict)
-
-    def test_running_jobs_can_be_modified(self):
-        """Test _running_jobs can be modified."""
-        _running_jobs["test_job"] = {"status": "running"}
-        assert "test_job" in _running_jobs
-        del _running_jobs["test_job"]
-
-
-class TestDesktopCommanderUrl:
-    def test_default_url(self):
-        """Test default DESKTOP_COMMANDER_URL."""
-        assert isinstance(DESKTOP_COMMANDER_URL, str)

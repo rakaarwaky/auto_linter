@@ -52,7 +52,6 @@ class TestExecuteCommand:
             return decorator(func)
         mcp.tool.side_effect = capture_tool
 
-        import surfaces.mcp_execute_command as exec_module
         import surfaces.mcp_command_catalog as catalog_module
 
         original_list_commands = catalog_module.list_commands

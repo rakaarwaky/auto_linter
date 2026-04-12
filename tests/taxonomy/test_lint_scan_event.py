@@ -1,7 +1,7 @@
 """Comprehensive tests for lint_scan_event.py — 100% coverage."""
 
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime
 from taxonomy.lint_value_vo import Severity, ErrorCode, Score
 from taxonomy.lint_identifier_vo import FilePath, AdapterName
 from taxonomy.lint_scan_event import (
