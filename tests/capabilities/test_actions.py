@@ -1,0 +1,172 @@
+import json
+import pytest
+from unittest.mock import MagicMock, patch
+from taxonomy.lint_result_models import LintResult, Severity, GovernanceReport
+from capabilities.linting_analysis_actions import RunAnalysisUseCase, ApplyFixesUseCase
+
+@pytest.mark.asyncio
+async def test_run_analysis_use_case_execute():
+    # Setup
+    mock_adapter = MagicMock()
+    mock_adapter.name.return_value = "mock"
+    mock_adapter.scan.return_value = [
+        LintResult("file.py", 1, 1, "E1", "Msg", "mock", Severity.MEDIUM)
+    ]
+    
+    use_case = RunAnalysisUseCase(adapters=[mock_adapter])
+    
+    # Execute
+    report = await use_case.execute("path/to/scan")
+    
+    # Assert
+    assert len(report.results) == 1
+    assert report.results[0].code == "E1"
+    mock_adapter.scan.assert_called_once_with("path/to/scan")
+
+@pytest.mark.asyncio
+async def test_run_analysis_use_case_adapter_exception():
+    # Setup
+    mock_adapter = MagicMock()
+    mock_adapter.name.return_value = "fail_mock"
+    mock_adapter.scan.side_effect = Exception("error")
+    
+    use_case = RunAnalysisUseCase(adapters=[mock_adapter])
+    
+    # Execute (should not raise exception)
+    report = await use_case.execute("path/to/scan")
+    
+    # Assert
+    assert len(report.results) == 0
+
+@pytest.mark.asyncio
+async def test_run_analysis_use_case_enrichment():
+    # Setup
+    mock_adapter = MagicMock()
+    mock_adapter.name.return_value = "mock"
+    mock_adapter.scan.return_value = [
+        LintResult("file.py", 10, 1, "E1", "missing argument for function 'test_func'", "mock", Severity.MEDIUM),
+        LintResult("file.py", 20, 1, "E2", "unused variable 'x'", "mock", Severity.MEDIUM)
+    ]
+    
+    mock_tracer = MagicMock()
+    mock_tracer.show_enclosing_scope.return_value = "def outer"
+    mock_tracer.trace_call_chain.return_value = ["caller.py:5"]
+    mock_tracer.find_flow.return_value = ["Line 1 [Assignment]: x = 1"]
+    
+    use_case = RunAnalysisUseCase(adapters=[mock_adapter], tracers={"python": mock_tracer})
+    
+    # Execute
+    report = await use_case.execute("/root/file.py")
+    
+    # Assert enrichment
+    assert report.results[0].enclosing_scope == "def outer"
+    assert "Caller: caller.py:5" in report.results[0].related_locations
+    assert "Line 1 [Assignment]: x = 1" in report.results[1].related_locations
+
+def test_run_analysis_use_case_to_dict():
+    use_case = RunAnalysisUseCase(adapters=[])
+    report = GovernanceReport()
+    report.add_result(LintResult("file.py", 1, 1, "E1", "Msg", "ruff", Severity.MEDIUM))
+    report.add_result(LintResult("sum.py", 2, 2, "S1", "Summary Msg", "summary", Severity.INFO))
+    
+    output = use_case.to_dict(report)
+    
+    assert output["score"] == 98.0
+    assert len(output["ruff"]) == 1
+    assert len(output["governance"]) == 1 # "summary" maps to "governance"
+    assert output["summary"]["ruff"] == 1
+    assert output["summary"]["governance"] == 1
+
+def test_run_analysis_use_case_to_dict_unknown_source():
+    use_case = RunAnalysisUseCase(adapters=[])
+    report = GovernanceReport()
+    report.add_result(LintResult("file.py", 1, 1, "U1", "Msg", "unknown_tool", Severity.MEDIUM))
+    
+    output = use_case.to_dict(report)
+    
+    assert "unknown_tool" in output
+    assert len(output["unknown_tool"]) == 1
+    assert output["summary"]["unknown_tool"] == 1
+
+@pytest.mark.asyncio
+async def test_apply_fixes_use_case_python():
+    mock_adapter = MagicMock()
+    mock_adapter.name.return_value = "ruff"
+    mock_adapter.apply_fix.return_value = True
+    use_case = ApplyFixesUseCase(adapters=[mock_adapter])
+    
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(stdout="done", stderr="", check_returncode=lambda: None)
+        
+        result = await use_case.execute("test.py")
+        
+        assert "[ruff] Applied automatic fixes." in result
+        mock_adapter.apply_fix.assert_called_once_with("test.py")
+
+@pytest.mark.asyncio
+async def test_apply_fixes_use_case_semantic_rename():
+    mock_ruff = MagicMock()
+    mock_ruff.name.return_value = "ruff"
+    mock_ruff.scan.return_value = [
+        LintResult("file.py", 1, 1, "N802", "invalid name 'badName'", "ruff", Severity.MEDIUM)
+    ]
+    mock_ruff.apply_fix.return_value = False
+    
+    use_case = ApplyFixesUseCase(adapters=[mock_ruff])
+    mock_tracer = MagicMock()
+    mock_tracer.get_variant_dict.return_value = {"snake_case": "good_name", "pascal_case": "GoodName"}
+    mock_tracer.project_wide_rename.return_value = 1
+    
+    use_case.tracers = {"python": mock_tracer}
+    
+    # Execute
+    result = await use_case.execute("file.py")
+    
+    # Assert
+    assert "Semantic Rename" in result
+    assert "Changed 'badName' -> 'good_name'" in result
+    mock_tracer.project_wide_rename.assert_called()
+
+@pytest.mark.asyncio
+async def test_apply_fixes_use_case_javascript():
+    mock_prettier = MagicMock()
+    mock_prettier.name.return_value = "prettier"
+    mock_prettier.apply_fix.return_value = True
+    
+    mock_eslint = MagicMock()
+    mock_eslint.name.return_value = "eslint"
+    mock_eslint.apply_fix.return_value = True
+    
+    use_case = ApplyFixesUseCase(adapters=[mock_prettier, mock_eslint])
+    
+    # Execute
+    result = await use_case.execute("test.js")
+    
+    # Assert
+    assert "[prettier] Applied automatic fixes." in result
+    assert "[eslint] Applied automatic fixes." in result
+    assert mock_prettier.apply_fix.called
+    assert mock_eslint.apply_fix.called
+
+@pytest.mark.asyncio
+async def test_apply_fixes_use_case_semantic_rename_n801():
+    mock_ruff = MagicMock()
+    mock_ruff.name.return_value = "ruff"
+    mock_ruff.scan.return_value = [
+        LintResult("file.py", 1, 1, "N801", "class name 'badname' should use CapWords", "ruff", Severity.MEDIUM)
+    ]
+    mock_ruff.apply_fix.return_value = False
+    
+    use_case = ApplyFixesUseCase(adapters=[mock_ruff])
+    mock_tracer = MagicMock()
+    mock_tracer.get_variant_dict.return_value = {"snake_case": "good_name", "pascal_case": "GoodName"}
+    mock_tracer.project_wide_rename.return_value = 1
+    
+    use_case.tracers = {"python": mock_tracer}
+    
+    # Execute
+    result = await use_case.execute("file.py")
+    
+    assert "Semantic Rename" in result
+    assert "Changed 'badname' -> 'GoodName'" in result
+    mock_tracer.project_wide_rename.assert_called()

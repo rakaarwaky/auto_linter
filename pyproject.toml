@@ -14,14 +14,18 @@ dependencies = [
     "ruff",
     "mypy",
     "pyre-check",
+    "click",
+    "watchdog",
+    "httpx>=0.27.0",  # For DesktopCommander integration
 ]
 
 [project.scripts]
-auto-linter = "src.surfaces.mcp.server:main"
+auto-linter = "surfaces.mcp_server_entry:main"
+auto-lint = "surfaces.cli_main_entry:cli"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
+where = ["src"]
+include = ["agent", "capabilities", "infrastructure", "surfaces", "taxonomy"]
 exclude = ["tests*"]
 namespaces = false
 
