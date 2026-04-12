@@ -170,16 +170,16 @@ mcp_desktop_client.py   -- DesktopCommander adapter client
 
 ---
 
-## 8. CLI Interface (28 Commands)
+## 8. CLI Interface (30 Commands)
 
-| Category    | Commands                                                         |
-| ----------- | ---------------------------------------------------------------- |
-| Core        | check, scan, fix, report, ci, version, adapters, security, cancel |
-| Analysis    | complexity, duplicates, trends, dependencies, batch              |
+| Category    | Commands                                                                |
+| ----------- | ----------------------------------------------------------------------- |
+| Core        | check, scan, fix, report, ci, version, adapters, security, cancel       |
+| Analysis    | complexity, duplicates, trends, dependencies, batch                     |
 | Dev         | diff, suggest, ignore, config, export, import, init, install-hook, uninstall-hook |
-| Setup       | setup init, setup hermes, setup doctor, setup mcp-config         |
-| Maintenance | stats, clean, update, doctor                                     |
-| Other       | watch                                                           |
+| Setup       | setup init, setup hermes, setup doctor, setup mcp-config                |
+| Maintenance | stats, clean, update, doctor                                            |
+| Other       | watch, plugins, multi-project                                           |
 
 ---
 

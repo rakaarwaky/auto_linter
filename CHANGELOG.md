@@ -7,7 +7,7 @@
 - Full value object (VO) system — no bare primitives for typed concepts
 - 11 lint adapters: ruff, mypy, bandit, radon, pip-audit, duplicates, trends, eslint, prettier, tsc, governance
 - 5 MCP tools: execute_command, list_commands, read_skill_context, check_status, health_check
-- 28 CLI commands: check, scan, fix, report, security, complexity, duplicates, trends, dependencies, ci, batch, watch, version, adapters, stats, clean, update, doctor, install-hook, uninstall-hook, config, diff, export, import, ignore, init, suggest, cancel
+- 30 CLI commands: check, scan, fix, report, security, complexity, duplicates, trends, dependencies, ci, batch, watch, version, adapters, stats, clean, update, doctor, install-hook, uninstall-hook, config, diff, export, import, ignore, init, suggest, cancel, plugins, multi-project
 - 4 setup commands: setup init, setup hermes, setup doctor, setup mcp-config
 - Governance scoring with configurable thresholds
 - SARIF and JUnit report formats

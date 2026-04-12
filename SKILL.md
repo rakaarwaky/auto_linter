@@ -114,6 +114,7 @@ Returns: `{"status": "...", "protocol": "...", ...}`
 | `auto-lint suggest <path>` | AI-powered fix suggestions (--ai flag) |
 | `auto-lint config show\|edit\|reset` | View, edit, or reset configuration settings |
 | `auto-lint export sarif\|junit\|json` | Export lint reports to file (-o output) |
+| `auto-lint import <config.json>` | Import configurations from file |
 | `auto-lint ignore <rule>` | Manage ignore rules (--remove to delete) |
 | `auto-lint init` | Initialize a new Auto-Linter configuration |
 | `auto-lint install-hook` | Install git pre-commit hook |
@@ -137,6 +138,8 @@ Returns: `{"status": "...", "protocol": "...", ...}`
 |---------|-------------|
 | `auto-lint watch <path>` | Watch files, auto-lint on changes |
 | `auto-lint batch <p1> <p2>` | Check multiple paths |
+| `auto-lint plugins` | List discovered plugins |
+| `auto-lint multi-project <paths>` | Lint multiple projects, aggregate |
 
 ## Transport
 

@@ -176,6 +176,7 @@ The default socket path is `/run/desktop-commander/socket`. Set `DESKTOP_COMMAND
 | `complexity <path>` | Cyclomatic complexity analysis |
 | `duplicates <path>` | Code duplication detection     |
 | `trends <path>`     | Quality trends over time       |
+| `dependencies <path>` | Dependency vulnerability scan  |
 
 ### Setup
 
@@ -218,6 +219,8 @@ The default socket path is `/run/desktop-commander/socket`. Set `DESKTOP_COMMAND
 | ------------------------------ | ------------------------------------ |
 | `watch <path>`               | Watch files and auto-lint on changes |
 | `batch <path1> <path2>`      | Check multiple paths                 |
+| `plugins`                    | List discovered plugins              |
+| `multi-project <paths...>`   | Lint multiple projects, aggregate    |
 
 Full list: `auto-lint --help`
 
