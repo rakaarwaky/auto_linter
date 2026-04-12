@@ -33,6 +33,8 @@ class PrettierAdapter(ILinterAdapter):
             if "[warn]" in combined_output:
                 # Ensure absolute path for Prettier
                 filename = normalize_path(path)
+                if not filename:
+                    filename = os.path.abspath(path)
                 if not os.path.isabs(filename):
                     filename = os.path.abspath(filename)
                 if not os.path.exists(filename):
@@ -72,7 +74,9 @@ class TSCAdapter(ILinterAdapter):
         if os.path.isfile(path) and not path.endswith((".ts", ".tsx")):
             return []
 
-        path = normalize_path(path)
+        normalized = normalize_path(path)
+        if normalized:
+            path = normalized
 
         results = []
         try:
@@ -97,7 +101,9 @@ class TSCAdapter(ILinterAdapter):
                         base_dir = os.path.dirname(os.path.abspath(path)) if os.path.isfile(path) else os.path.abspath(path)
                         filename = os.path.join(base_dir, filename)
 
-                    filename = normalize_path(filename)
+                    filename_norm = normalize_path(filename)
+                    if filename_norm:
+                        filename = filename_norm
                     if not os.path.exists(filename):
                         filename = os.path.abspath(filename)
 

@@ -38,9 +38,11 @@ def discover_plugins(group: str = "auto_linter.adapters") -> Dict[str, Type]:
         eps = importlib.metadata.entry_points()
         # Python 3.10+ returns SelectableGroups, 3.9 returns dict
         if hasattr(eps, "select"):
-            group_eps = eps.select(group=group)
-        else:
+            group_eps = list(eps.select(group=group))
+        elif isinstance(eps, dict):
             group_eps = eps.get(group, [])
+        else:
+            group_eps = []
 
         for ep in group_eps:
             try:

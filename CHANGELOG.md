@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.1.0 (2026-04-13)
+
+### Added
+- **Full system health check** — `health_check` now reports on 4 components: agent lifecycle, DesktopCommander transport, job registry, and filesystem
+- **Semantic analyzers wired** — `SemanticScopeAnalyzer` and `CallChainAnalyzer` integrated into DI container (`container.semantic_analyzers`)
+- **Multi-project orchestration** — moved to agent domain, uses taxonomy VOs (`ProjectResult`, `AggregatedResults`)
+- **Git diff coordination** — surfaces call `container.get_git_diff()` instead of importing infrastructure directly
+- **Plugin discovery coordination** — surfaces call `container.get_discovered_plugins()` and `container.get_custom_adapters()`
+- **Stdio transport fallback** — DesktopCommanderAdapter now includes StdioClient as third transport option
+- **SKILL.md path fixed** — `read_skill_context` resolves correct path for MCP server
+- **PHANTOM_ROOT test fix** — conftest.py force-override environment variables for consistent test results
+- **VS Code mypy settings** — `.vscode/settings.json` for proper src/ layout resolution
+
+### Fixed
+- **Architecture leaks eliminated** — 0 cross-layer violations (surfaces↛infra, capabilities↛infra, infra↛agent, capabilities↛agent)
+- **Dead code wired and functional** — lifecycle, pipeline, multi-project, path normalization, stdio transport all operational
+- **MCP import chain repaired** — `_running_jobs` moved to canonical source (`mcp_execute_command.py`)
+- **Mypy type errors fixed** — null-safety for `normalize_path()`, proper `entry_points()` handling, correct return types
+- **Unused imports removed** — 4 Ruff F401 violations cleaned up
+- **Build artifacts removed** — `src/auto_linter.egg-info/` deleted, added to `.gitignore`
+- **Entry point fixed** — `auto-lint` now uses `main()` wrapper for proper pip installation
+
+### Removed
+- `pyre-check` from core dependencies (moved to optional)
+- Duplicate wiring container (`wiring_dependency_container.py`)
+- Orphaned infrastructure modules (`multi_project.py`, `multi_project_aggregator.py`)
+
+### Quality
+- **1004 tests passed, 0 failed** — all tests green
+- **89% code coverage**
+- **Ruff: 0 violations**
+
 ## 1.0.0 (2026-04-12)
 
 ### Added

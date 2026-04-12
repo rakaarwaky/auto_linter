@@ -1,5 +1,0 @@
-agent
-capabilities
-infrastructure
-surfaces
-taxonomy
