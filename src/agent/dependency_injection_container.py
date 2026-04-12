@@ -24,10 +24,9 @@ from infrastructure.git_diff_scanner import get_changed_files, filter_by_extensi
 from infrastructure.desktop_commander_adapter import DesktopCommanderAdapter
 from infrastructure.plugin_system import discover_plugins, list_custom_adapters
 from infrastructure.config_validation_provider import get_config
-from agent.lifecycle_state_manager import get_state, AgentState
+from agent.lifecycle_state_manager import get_state
 from agent.pipeline_execution_orchestrator import Pipeline
 from agent.multi_project_orchestrator import MultiProjectOrchestrator
-from agent.tracking_job_registry import create_job, complete_job, fail_job, run_with_retry
 import os
 import sys
 from typing import List, Tuple
@@ -121,7 +120,7 @@ class Container:
         self.desktop_commander = DesktopCommanderAdapter()
 
     # === GIT DIFF (Surface support) ===
-    def get_git_diff(self, base: str = "HEAD") -> dict:
+    def get_git_diff(self, base: str = "HEAD") -> dict | None:
         """Get changed files — surface calls this, agent coordinates."""
         diff = get_changed_files(base=base)
         if diff is None:

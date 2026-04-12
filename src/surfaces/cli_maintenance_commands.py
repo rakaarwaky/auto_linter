@@ -1,6 +1,5 @@
 """Maintenance CLI commands: stats, clean, update, doctor, cancel."""
 import click
-import json
 import shutil
 import subprocess
 import sys

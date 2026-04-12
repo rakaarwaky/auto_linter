@@ -49,7 +49,8 @@ async def list_commands(domain: str | None = None):
 
 async def read_skill_context(section: str | None = None):
     """Read SKILL.md sections for documentation."""
-    skill_path = Path(__file__).parent.parent.parent.parent / "SKILL.md"
+    # Path: surfaces/mcp_command_catalog.py -> src/ -> auto_linter/ -> SKILL.md
+    skill_path = Path(__file__).resolve().parent.parent.parent / "SKILL.md"
     if not skill_path.exists():
         return json.dumps({"error": "SKILL.md not found", "path": str(skill_path)})
     try:

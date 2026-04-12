@@ -73,12 +73,29 @@ class TestMCPCommandCatalog:
     @pytest.mark.asyncio
     async def test_read_skill_context_read_exception(self):
         """Test read_skill_context exception path when file read fails."""
-        with patch("builtins.open", side_effect=IOError("permission denied")):
-            # Need to make Path.exists return True to trigger the try block
-            with patch.object(Path, "exists", return_value=True):
-                result = await read_skill_context()
-                data = json.loads(result)
-                assert "error" in data
+        mock_path = MagicMock()
+        mock_path.exists.return_value = True
+        mock_path.read_text.side_effect = IOError("permission denied")
+        mock_path.parent.parent.parent = mock_path
+        mock_path.resolve.return_value = mock_path
+        mock_path.__truediv__ = MagicMock(return_value=mock_path)
+
+        import surfaces.mcp_command_catalog as catalog_mod
+        orig_path = catalog_mod.Path
+
+        class FakePath:
+            def __init__(self, *args):
+                self._parts = args
+            def resolve(self):
+                return mock_path
+
+        catalog_mod.Path = FakePath
+        try:
+            result = await read_skill_context()
+            data = json.loads(result)
+            assert "error" in data
+        finally:
+            catalog_mod.Path = orig_path
 
 
 def test_command_catalog_commands_count():

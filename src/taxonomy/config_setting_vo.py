@@ -1,7 +1,7 @@
 """config_setting_vo — Value objects for configuration domain (Pydantic)."""
 
 from enum import Enum
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from pydantic import BaseModel, ConfigDict, field_validator
 
 

@@ -2,7 +2,7 @@
 
 import json
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock, AsyncMock, patch
 from surfaces.mcp_health_check import register_health_check
 
 
@@ -15,15 +15,7 @@ class TestHealthCheck:
 
     @pytest.mark.asyncio
     async def test_health_check_success(self):
-        """Test health_check returns success when client is healthy."""
-        mock_client = AsyncMock()
-        mock_client.health_check = AsyncMock(return_value={"status": "ok"})
-        mock_client.protocol = "http"
-
-        import surfaces.mcp_desktop_client as dc_module
-        dc_module._desktop_commander_client = mock_client
-
-        # Capture the health_check function from registration
+        """Test health_check returns success when healthy."""
         mcp = MagicMock()
         tool_func = None
 
@@ -38,21 +30,25 @@ class TestHealthCheck:
             return decorator(func)
         mcp.tool.side_effect = capture_decorator
 
-        register_health_check(mcp)
-        result = await tool_func()
-        data = json.loads(result)
-        assert "status" in data
+        # Mock desktop client
+        mock_client = AsyncMock()
+        mock_client.health_check = AsyncMock(return_value={
+            "status": "healthy", "latency_ms": 2.0
+        })
+        mock_client.protocol = "UnixSocket"
+
+        with patch("surfaces.mcp_desktop_client._get_client", return_value=mock_client):
+            register_health_check(mcp)
+            result = await tool_func()
+            data = json.loads(result)
+            assert "components" in data
+            assert "agent" in data["components"]
+            assert "desktop_commander" in data["components"]
+            assert "jobs" in data["components"]
 
     @pytest.mark.asyncio
-    async def test_health_check_error_handling(self):
-        """Test health_check handles errors gracefully."""
-        import surfaces.mcp_desktop_client as dc_module
-        dc_module._desktop_commander_client = None
-
-        def raise_get_client():
-            raise ConnectionError("test error")
-        dc_module._get_client = raise_get_client
-
+    async def test_health_check_degraded(self):
+        """Test health_check reports degraded when components fail."""
         mcp = MagicMock()
         tool_func = None
 
@@ -67,21 +63,21 @@ class TestHealthCheck:
             return decorator(func)
         mcp.tool.side_effect = capture_decorator
 
-        register_health_check(mcp)
-        result = await tool_func()
-        data = json.loads(result)
-        assert "error" in data
+        mock_client = AsyncMock()
+        mock_client.health_check = AsyncMock(side_effect=ConnectionError("dc down"))
+        mock_client.protocol = "Unknown"
+
+        with patch("surfaces.mcp_desktop_client._get_client", return_value=mock_client):
+            register_health_check(mcp)
+            result = await tool_func()
+            data = json.loads(result)
+            assert data["status"] in ("degraded", "unhealthy")
+            assert len(data["issues"]) > 0
+            assert "components" in data
 
     @pytest.mark.asyncio
     async def test_health_check_returns_json(self):
         """Test health_check returns JSON string."""
-        mock_client = AsyncMock()
-        mock_client.health_check = AsyncMock(return_value={"status": "ok", "version": "1.0"})
-        mock_client.protocol = "http"
-
-        import surfaces.mcp_desktop_client as dc_module
-        dc_module._desktop_commander_client = mock_client
-
         mcp = MagicMock()
         tool_func = None
 
@@ -96,8 +92,13 @@ class TestHealthCheck:
             return decorator(func)
         mcp.tool.side_effect = capture_decorator
 
-        register_health_check(mcp)
-        result = await tool_func()
-        data = json.loads(result)
-        assert "status" in data
-        assert isinstance(result, str)
+        mock_client = AsyncMock()
+        mock_client.health_check = AsyncMock(return_value={"status": "healthy"})
+        mock_client.protocol = "http"
+
+        with patch("surfaces.mcp_desktop_client._get_client", return_value=mock_client):
+            register_health_check(mcp)
+            result = await tool_func()
+            assert isinstance(result, str)
+            data = json.loads(result)
+            assert "status" in data

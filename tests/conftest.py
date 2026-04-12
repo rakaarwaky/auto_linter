@@ -11,8 +11,6 @@ if src_path not in sys.path:
     sys.path.insert(0, src_path)
 
 # Set PHANTOM_ROOT and PROJECT_ROOT for path normalization tests
-os.environ.setdefault("PHANTOM_ROOT", "/home/raka/src/")
-os.environ.setdefault(
-    "PROJECT_ROOT",
-    "/persistent/home/raka/mcp-servers/auto_linter/src/"
-)
+# Force-override (not setdefault) to ensure test consistency
+os.environ["PHANTOM_ROOT"] = "/home/raka/src/"
+os.environ["PROJECT_ROOT"] = "/persistent/home/raka/mcp-servers/auto_linter/src/"
