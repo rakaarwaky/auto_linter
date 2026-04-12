@@ -1,0 +1,9 @@
+{
+  "mypy-type-checker.args": [
+    "--config-file",
+    "mypy.ini",
+    "--explicit-package-bases",
+    "--ignore-missing-imports"
+  ],
+  "mypy-type-checker.cwd": "${workspaceFolder}"
+}
