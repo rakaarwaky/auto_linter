@@ -12,8 +12,6 @@ DESKTOP_COMMANDER_URL = os.environ.get(
     "/run/desktop-commander/socket"
 )
 
-_running_jobs: dict[str, dict] = {}
-
 
 def _get_client():
     """Get DesktopCommander client from agent container."""

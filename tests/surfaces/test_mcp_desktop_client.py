@@ -6,9 +6,9 @@ from unittest.mock import MagicMock, patch, AsyncMock
 from surfaces.mcp_desktop_client import (
     _get_client,
     _execute_with_retry,
-    _running_jobs,
     DESKTOP_COMMANDER_URL,
 )
+from surfaces.mcp_execute_command import _running_jobs
 
 
 class TestGetClient:

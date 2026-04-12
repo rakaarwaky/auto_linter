@@ -1,8 +1,8 @@
 """MCP Tool: check_status (cancel_job moved to CLI: auto-lint cancel)."""
 import json
 
-# Shared job state from canonical source (mcp_desktop_client)
-from surfaces.mcp_desktop_client import _running_jobs
+# Shared job state from canonical source (mcp_execute_command)
+from surfaces.mcp_execute_command import _running_jobs
 
 
 def register_check_status(mcp):

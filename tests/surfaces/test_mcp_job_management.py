@@ -4,7 +4,7 @@ import json
 import pytest
 from unittest.mock import MagicMock
 from surfaces.mcp_job_management import register_check_status
-from surfaces.mcp_desktop_client import _running_jobs
+from surfaces.mcp_execute_command import _running_jobs
 
 
 class TestCheckStatus:

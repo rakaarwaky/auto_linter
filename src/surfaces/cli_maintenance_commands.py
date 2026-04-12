@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from surfaces.mcp_desktop_client import _running_jobs
+from surfaces.mcp_execute_command import _running_jobs
 
 
 def register_maintenance_commands(cli):
