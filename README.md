@@ -129,7 +129,7 @@ The server registers 5 MCP tools:
 
 | Tool                   | Description                                           |
 | ---------------------- | ----------------------------------------------------- |
-| `execute_command`    | Execute any CLI command via DesktopCommander pipeline |
+| `execute_command`    | Execute any CLI command                               |
 | `list_commands`      | List all available CLI commands with descriptions     |
 | `read_skill_context` | Read SKILL.md documentation sections                  |
 | `check_status`       | Check status of running lint jobs                     |
