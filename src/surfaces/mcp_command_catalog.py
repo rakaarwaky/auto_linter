@@ -30,6 +30,9 @@ _COMMAND_CATALOG = {
     "adapters": {"description": "List enabled adapters", "example": "auto-lint adapters"},
     "install-hook": {"description": "Install git pre-commit hook", "example": "auto-lint install-hook"},
     "uninstall-hook": {"description": "Remove git pre-commit hook", "example": "auto-lint uninstall-hook"},
+    "cancel": {"description": "Cancel a running lint job", "example": "auto-lint cancel <job_id>"},
+    "plugins": {"description": "List discovered and registered plugins", "example": "auto-lint plugins"},
+    "multi-project": {"description": "Run lint across multiple projects", "example": "auto-lint multi-project proj1/ proj2/"},
     "version": {"description": "Show version", "example": "auto-lint version"},
 }
 

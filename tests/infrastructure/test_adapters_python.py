@@ -32,7 +32,7 @@ def test_ruff_adapter_scan_non_python_file():
         assert RuffAdapter().scan("test.txt") == []
 
 
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_ruff_adapter_scan_phantom_path_replace():
     """When path contains /home/raka/src/, it should be replaced before scanning."""
     adapter = RuffAdapter()
@@ -110,7 +110,7 @@ def test_ruff_adapter_file_not_found(mock_run):
 
 
 @patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_ruff_adapter_scan_phantom_e902_filtering(mock_run):
     """E902 errors with phantom /home/raka/src/ paths should be filtered."""
     ruff_output = json.dumps([
@@ -183,7 +183,7 @@ def test_ruff_adapter_scan_e902_mixed_real_errors(mock_run):
 @patch("subprocess.run")
 @patch("os.path.abspath", side_effect=lambda x: x)
 @patch("os.path.isabs", return_value=True)
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_ruff_adapter_scan_e902_phantom_exists(mock_isabs, mock_abs, mock_run):
     """If phantom path ACTUALLY exists, it's still filtered ( false positive in this environment)."""
     ruff_output = json.dumps([
@@ -197,7 +197,7 @@ def test_ruff_adapter_scan_e902_phantom_exists(mock_isabs, mock_abs, mock_run):
 
 
 @patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_ruff_adapter_scan_e902_non_phantom_not_exists(mock_run):
     """E902 for non-phantom file that doesn't exist should be filtered."""
     ruff_output = json.dumps([
@@ -214,7 +214,7 @@ def test_ruff_adapter_scan_e902_non_phantom_not_exists(mock_run):
 
 
 @patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_ruff_adapter_scan_phantom_no_exists_fallback(mock_run):
     """Case where phantom file doesn't exist anywhere (emergency fallback split)."""
     ruff_output = json.dumps([
@@ -233,7 +233,7 @@ def test_ruff_adapter_scan_phantom_no_exists_fallback(mock_run):
 
 
 @patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_mypy_adapter_phantom_fallbacks(mock_run):
     """Test MyPy phantom path fallbacks (lines 161-167)."""
     mock_run.return_value = MagicMock(stdout="/home/raka/src/app.py:5:1: error: Err", stderr="")
@@ -260,7 +260,7 @@ def test_mypy_adapter_phantom_fallbacks(mock_run):
 
 
 @patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_ruff_adapter_scan_phantom_filename_in_result(mock_run):
     """Phantom path /home/raka/src/ in result filenames gets replaced to /persistent/ path."""
     ruff_output = json.dumps([
@@ -293,8 +293,7 @@ def test_mypy_adapter_scan_non_python_file():
         assert MyPyAdapter().scan("test.txt") == []
 
 
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_mypy_adapter_scan_phantom_path():
     """When path contains /home/raka/src/ it should be replaced."""
     adapter = MyPyAdapter()
@@ -345,8 +344,7 @@ def test_mypy_adapter_empty_output(mock_isfile, mock_run):
 @patch("os.path.isabs", return_value=True)
 @patch("os.path.abspath", side_effect=lambda x: x)
 @patch("os.path.isfile", return_value=False)
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_mypy_adapter_phantom_filename_replacement(mock_isfile, mock_abs, mock_isabs, mock_exists, mock_run):
     """Phantom paths in mypy output should be resolved to /persistent/."""
     mypy_output = "/home/raka/src/app.py:5:1: error: Some error"
@@ -409,8 +407,7 @@ def test_mypy_adapter_scan_generic_exception(mock_run):
 @patch("subprocess.run")
 @patch("os.path.exists")
 @patch("os.path.isabs", return_value=True)
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_mypy_adapter_scan_phantom_secondary_fallback(mock_isabs, mock_exists, mock_run):
     mock_run.return_value = MagicMock(stdout="/home/raka/src/file.py:1: error: msg", stderr="")
     exists_calls = []
@@ -426,8 +423,7 @@ def test_mypy_adapter_scan_phantom_secondary_fallback(mock_isabs, mock_exists, m
 @patch("os.path.exists", return_value=False)
 @patch("os.path.isabs", return_value=True)
 @patch("os.path.abspath", side_effect=lambda x: f"/abs/{x}")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
-@pytest.mark.skip(reason="Phantom path rewriting removed in flat refactor")
+@pytest.mark.skip(reason="Phantom feature removed")
 def test_mypy_adapter_scan_non_phantom_abspath_fallback(mock_abs, mock_isabs, mock_exists, mock_run):
     mock_run.return_value = MagicMock(stdout="rel.py:1: error: msg", stderr="")
     results = MyPyAdapter().scan("/abs/")

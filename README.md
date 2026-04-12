@@ -1,361 +1,309 @@
-# Auto Linter (MCP Server) 🛡️
+# Auto Linter
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)\n[![Maintainability](https://img.shields.io/badge/Maintainability-A-green.svg)](https://github.com/rakaarwaky/auto_linter)\n[![Test Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen.svg)](https://github.com/rakaarwaky/auto_linter)\n[![Governance](https://img.shields.io/badge/Governance-Strict-blue.svg)](GOVERNANCE.md)\n[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/tests-800-green.svg)](tests/)
 
-**Auto Linter** is an advanced Model Context Protocol (MCP) Server that provides autonomous, multi-language linting, type-checking, and architectural governance auditing for software projects. Designed to support robust engineering workflows under the Agentic Engineering System (AES) principles with **100/100 Governance Score**.
+MCP server for autonomous, multi-language linting and architectural governance auditing. Works as a standalone CLI tool **and** as MCP server for AI agents (Hermes, Claude Code, VS Code).
 
----
-
-## 📑 Table of Contents
-- [Features](#-features)
-- [Quick Start](#quick-start)
-  - [Installation](#installation)
-  - [First Commands](#first-commands)
-- [CLI Command Reference](#cli-command-reference)
-- [MCP Tools for AI Agents](#mcp-tools-for-ai-agents)
-- [Common Workflows](#common-workflows)
-- [Architecture Overview](#architecture-overview)
-- [Contributing & Governance](#contributing--governance)
-- [License](#license)
+Uses `mcp.server.fastmcp.FastMCP` for the MCP server interface. Works with DesktopCommander for secure command execution.
 
 ---
 
-## 🚀 Features
+## Choose Your Path
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **Multi-Language Support** | Python (Ruff, MyPy), JavaScript/TypeScript (ESLint, Prettier, TSC) | ✅ Active |
-| **Autonomous Fixes** | Automatically applies safe fixes without manual intervention | ✅ Active |
-| **Strict Governance Check** | Enforces 100.0 governance score to prevent architectural drift | ✅ Active |
-| **Hybrid Architecture Pattern** | MCP tools + CLI commands for unlimited scalability (84% token savings!) | ✅ Implemented |
-| **Clean Architecture Principles** | Vertical slicing with Dependency Injection, easy extensibility | ✅ Complete |
+| I'm a... | Start Here | What I'll Do |
+| -------- | --------- | ------------|
+| **User** | [Quick Start](#quick-start) | Lint my code, set up CI |
+| **Developer** | [Development Setup](#setup) | Add features, fix bugs |
+| **Adapter Contributor** | [Contributing: Add Adapter](#how-to-add-an-adapter) | Integrate new linter tools |
+| **CLI Contributor** | [Contributing: Add CLI](#how-to-add-a-cli-command) | Add new CLI commands |
 
 ---
 
-## 🚦 Quick Start
+## Why Use Auto Linter
 
-### Installation
+### For Users
+
+| Benefit | Description |
+| ------- |-------------|
+| **Zero Config** | Works out-of-the-box with sensible defaults |
+| **Multi-Language** | Python, JavaScript, TypeScript in one tool |
+| **AI Ready** | MCP server for automated code review |
+| **Governance** | Architectural rule enforcement (AES, Clean, Hexagonal, DDD) |
+| **CI-Ready** | SARIF, JUnit, JSON reports with exit codes |
+| **Auto-Fix** | Safe fixes applied automatically |
+| **Quality Trends** | Track code quality over time |
+
+### For Contributors
+
+| Benefit | Description |
+| ------- |-------------|
+| **Well-Structured** | 5-domain architecture with clear boundaries |
+| **Comprehensive Tests** | 800+ tests, 80%+ coverage |
+| **Governance Built-In** | Linting governance adapter prevents violations |
+| **Clear Paths** | Documented guides for adapters, CLI, MCP |
+| **Active Project** | Regular updates, responsive maintainer |
+
+---
+
+## Install
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/rakaarwaky/auto_linter.git
-cd auto_linter
-
-# 2. Install dependencies via uv (recommended) or pip
-uv sync
-
-# OR with pip:
-pip install -e .
+pip install auto-linter
 ```
 
-### First Commands
+Or with [uv](https://github.com/astral-sh/uv):
 
 ```bash
-# Check version
+uv tool install auto-linter
+```
+
+Or zero-install:
+
+```bash
+uvx auto-linter check ./src/
+```
+
+Or one-liner installer (Linux/macOS):
+
+```bash
+curl -sSL https://raw.githubusercontent.com/rakaarwaky/auto-linter/main/install.sh | bash
+```
+
+Or for Windows (PowerShell):
+
+```powershell
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/rakaarwaky/auto-linter/main/install.ps1 | Invoke-Expression
+```
+
+### Verify
+
+```bash
 auto-lint version
-
-# List available adapters
-auto-lint adapters
-
-# Run a full governance check on your project
-auto-lint check src/
-
-# Apply automatic safe fixes
-auto-lint fix src/
-
-# Generate detailed report in JSON format (for CI pipelines)
-auto-lint report . --format json > report.json
+auto-lint setup doctor
 ```
 
 ---
 
-## 📖 CLI Command Reference
-
-### Core Commands
-
-| Command | Description | Example Usage | Exit Code on Failure |
-|---------|-------------|---------------|---------------------|
-| `check <path>` | Run all linters and check governance score | `auto-lint check src/` | 1 if score < 80.0 |
-| `scan <path>` | Deep directory scan (alias for check) | `auto-lint scan ./src/` | Same as check |
-| `fix <path>` | Apply safe fixes automatically (Ruff, ESLint, Prettier) | `auto-lint fix src/` | 0 always |
-| `report <path> --format {text,json,sarif,junit}` | Generate detailed quality reports | `auto-lint report . --format sarif > out.sarif` | Same as check |
-
-### Specialized Scans
-
-| Command | Description | Example Usage | Exit Code on Failure |
-|---------|-------------|---------------|---------------------|
-| `security <path>` | Bandit-focused vulnerability scanning for SQL injection, XSS, etc. | `auto-lint security src/` | 1 if vulnerabilities found |
-| `complexity <path>` | Cyclomatic complexity analysis using Radon (detects complex functions) | `auto-lint complexity ./src/` | Same as check |
-| `duplicates <path>` | Code duplication detection and oversized file warnings | `auto-lint duplicates /path/to/project` | 1 if issues found |
-| `trends <path>` | Quality trend over time reporting (detects regressions) | `auto-linter trends ./` | Same as check |
-
-### CI/CD Commands
-
-| Command | Description | Example Usage | Exit Code on Failure |
-|---------|-------------|---------------|---------------------|
-| `ci <path> --exit-zero` | CI-optimized scan with proper exit codes for pipelines | `auto-lint ci src/ --format sarif > report.sarif` | 1 if score < threshold (unless --exit-zero) |
-| `batch path1 [path2 ...]` | Run check on multiple paths at once, reports pass/fail per path | `auto-linter batch src tests scripts/` | 1 if any path fails |
-
-### Utility Commands
-
-| Command | Description | Example Usage | Exit Code on Failure |
-|---------|-------------|---------------|---------------------|
-| `init <path>` | Initialize project configuration file (`.auto_linter.json`) | `auto-lint init . --yes` | 0 always, prompts for overwrite confirmation |
-| `install-hook [options]` | Install git pre-commit hook to auto-run lint on commit | `auto-lint install-hook` | Same as check if fails |
-| `uninstall-hook <path>` | Remove the installed git pre-commit hook | `auto-linter uninstall-hook --yes` | 0 always, prompts for confirmation |
-
-### Development Commands
-
-| Command | Description | Example Usage | Exit Code on Failure |
-|---------|-------------|---------------|---------------------|
-| `version` | Show tool version information (AES Semantic Builder) | `auto-lint version` | Always returns 0 |
-| `adapters` | List enabled linter adapter names and their status | `auto-lint adapters --verbose` | Always returns 0 |
-
-### Development Tools
-
-| Command | Description | Example Usage | Exit Code on Failure |
-|---------|-------------|---------------|---------------------|
-| `watch <path>` | Watch files for changes (`.py`, `.js`, `.ts`) and auto-lint automatically | `auto-lint watch ./src/` | Requires Ctrl+C to stop, 0 always unless interrupted by signal |
-
----
-
-## 🤖 MCP Tools for AI Agents
-
-Auto Linter exposes **7 core tools** through the MCP interface:
-
-| Tool Name | Parameters | Returns | When to Use |
-|-----------|------------|---------|-------------|
-| `run_lint_check(path)` | `path` (str): Absolute path to file/directory | JSON with violations per adapter and governance score | After every code change, before commits |
-| `apply_safe_fixes(path)` | `path` (str): Path to fix automatically | JSON with fix summary showing what was applied | Immediately after editing files |
-| `lint_security(path)` | `path` (str): Path to scan for vulnerabilities | List of security vulnerabilities with severity levels | Before release, after adding dependencies |
-| `lint_complexity(path)` | `path` (str): Path to analyze for complexity | Functions exceeding complexity threshold + details | During refactoring, code review sessions |
-| `lint_dependencies(path)` | `path` (str): Project path for dependency scan | List of vulnerable dependencies with CVE info | Weekly scans, after updating package.json requirements.txt |
-
-### Hybrid Architecture Pattern Tools
-
-These tools enable **unlimited CLI command discovery** without hitting MCP tool limits:
-
-| Tool Name | Parameters | Returns | When to Use |
-|-----------|------------|---------|-------------|
-| `list_commands(domain)` | Optional domain filter (e.g., `"lint"`) | JSON catalog of all available commands with examples | To discover what CLI actions are available before execution! |
-| `execute_command(action, args={})` | action: Command name; args: dict for optional arguments | Full command output including stdout/stderr and return code | Execute ANY CLI command via MCP without tool limit constraints! |
-
-**Example Usage**:
-```python
-# Discover all commands first (AI agent pattern)
-catalog = await list_commands()  # Returns {"check": {...}, "fix": {...}}
-
-# Then execute any action dynamically
-result = await execute_command(
-    action="report", 
-    args={"path": "./src/", "format": "json"}
-)
-print(result["stdout"])  # Full report output!
-```
-
----
-
-## 🔄 Common Workflows
-
-### Pre-Commit Quality Gate (Local Development)
+## Quick Start
 
 ```bash
-# Terminal workflow:
-auto-lint fix src/          # Apply safe fixes first
-auto-lint check src/        # Run full governance analysis
-                          # If score < 100, review violations manually!
+# Lint your code
+auto-lint check ./src/
+
+# Auto-fix safe issues
+auto-lint fix ./src/
+
+# Security scan
+auto-lint security ./src/
+
+# Generate report
+auto-lint report ./src/ --format json
 ```
 
-**Git Hook Integration**:
+---
+
+## Setup for AI Agents
+
+### Hermes Agent
+
 ```bash
-# Install automatic pre-commit hook (runs on every commit)
-auto-lint install-hook --path ./src/
-
-# Uninstall when needed
-auto-linter uninstall-hook
+pip install auto-linter
+auto-lint setup hermes
 ```
 
-### CI/CD Pipeline (GitHub Actions Example)
+This auto-detects DesktopCommander and configures Hermes automatically.
+
+### Claude Desktop / VS Code
+
+```bash
+auto-lint setup mcp-config --client claude
+```
+
+Copy the output to your MCP config file.
+
+### MCP Tools (5 tools)
+
+The server registers 5 MCP tools:
+
+| Tool                   | Description                                           |
+| ---------------------- | ----------------------------------------------------- |
+| `execute_command`    | Execute any CLI command via DesktopCommander pipeline |
+| `list_commands`      | List all available CLI commands with descriptions     |
+| `read_skill_context` | Read SKILL.md documentation sections                  |
+| `check_status`       | Check status of running lint jobs                     |
+| `health_check`       | Check DesktopCommander and transport health           |
+
+> **Note**: Job cancellation is a CLI command: `auto-lint cancel <job_id>`
+
+---
+
+## Transport
+
+Auto-linter connects to DesktopCommander for command execution. Supports 3 transport modes with **auto-detection**:
+
+```
+DESKTOP_COMMANDER_URL              Mode             Requires
+──────────────────────────────────────────────────────────────
+/run/desktop-commander/socket      Unix Socket      DesktopCommander
+http://host:port/execute           HTTP             DesktopCommander HTTP wrapper
+auto (default)                     Auto-detect      tries socket -> http -> stdio
+```
+
+The default socket path is `/run/desktop-commander/socket`. Set `DESKTOP_COMMANDER_URL` to override.
+
+---
+
+## CLI Commands
+
+### Core
+
+| Command                    | Description                                     |
+| -------------------------- | ----------------------------------------------- |
+| `check <path>`           | Run all linters, check governance score         |
+|                          | `--git-diff` flag: only lint changed files      |
+| `scan <path>`            | Alias for check (CI-friendly)                   |
+| `fix <path>`             | Apply safe fixes automatically                  |
+| `report <path>`          | Generate quality report (text/json/sarif/junit) |
+| `ci <path>`              | CI-optimized with exit codes                    |
+
+### Scans
+
+| Command                 | Description                    |
+| ----------------------- | ------------------------------ |
+| `security <path>`     | Bandit vulnerability scanning  |
+| `complexity <path>` | Cyclomatic complexity analysis |
+| `duplicates <path>` | Code duplication detection     |
+| `trends <path>`     | Quality trends over time       |
+
+### Setup
+
+| Command              | Description                                |
+| -------------------- | ------------------------------------------ |
+| `setup init`       | Auto-configure for your system             |
+| `setup hermes`     | Auto-install into Hermes Agent             |
+| `setup doctor`     | Diagnose configuration issues              |
+| `setup mcp-config` | Print MCP config for Claude/Hermes/VS Code |
+
+### Dev
+
+| Command                       | Description                                 |
+| ----------------------------- | ------------------------------------------- |
+| `diff <path1> <path2>`     | Compare lint results between two versions   |
+| `suggest <path>`           | AI-powered fix suggestions (--ai flag)      |
+| `config show\|edit\|reset`   | View, edit, or reset configuration settings |
+| `export sarif\|junit\|json`  | Export lint reports to file (-o output)     |
+| `import <config.json>`  | Import configurations from file            |
+| `ignore <rule>`            | Manage ignore rules (--remove to delete)    |
+| `init`                     | Initialize a new Auto-Linter configuration  |
+| `install-hook`             | Install git pre-commit hook                 |
+| `uninstall-hook`           | Remove git pre-commit hook                  |
+
+### Maintenance
+
+| Command            | Description              |
+| ------------------ | ------------------------ |
+| `cancel <job_id>` | Cancel a running job     |
+| `stats <path>`    | Statistics dashboard     |
+| `clean`           | Cleanup cache            |
+| `update`          | Update adapters          |
+| `doctor`          | Diagnose issues          |
+| `version`         | Show version             |
+| `adapters`        | List enabled linters     |
+
+### Other
+
+| Command                        | Description                          |
+| ------------------------------ | ------------------------------------ |
+| `watch <path>`               | Watch files and auto-lint on changes |
+| `batch <path1> <path2>`      | Check multiple paths                 |
+
+Full list: `auto-lint --help`
+
+---
+
+## Configuration
+
+### .env (optional)
+
+```bash
+# DesktopCommander transport (auto-detected if not set):
+DESKTOP_COMMANDER_URL=/run/desktop-commander/socket
+
+# For JS/TS linters:
+PHANTOM_ROOT=$HOME/
+```
+
+Create with: `auto-lint setup init`
+
+### auto_linter.config.yaml 
 
 ```yaml
-name: Auto Lint Check
-on: [push, pull_request]
+thresholds:
+  score: 80.0
+  complexity: 10
+  max_file_lines: 500
 
-jobs:
-  lint-and-governance:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      # Install dependencies via uv (recommended for Python projects)
-      - name: Setup Python and install auto_linter
-        run: |
-          pip install uv
-          git clone https://github.com/rakaarwaky/auto_linter.git
-          cd auto_linter && uv sync
-      
-      # Run comprehensive check with SARIF output for GitHub Code Scanning
-      - name: Auto Lint Check (SARIF)
-        run: |
-          cd /home/runner/work/auto_linter/auto_linter/.venv/bin python3 -m pytest tests --tb=short && \
-            ./auto-lint ci src/ --format sarif > report.sarif
-      
-      # Upload SARIF results for GitHub Code Scanning integration
-      - name: Upload SARIF Results
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: report.sarif
-  
-  test-coverage:
-    runs-on: ubuntu-latest
-    
-    steps:
-      # Verify all tests pass before merging!
-      - run: uv run pytest --tb=short -q && \
-            echo "✅ All $((uv run pytest --co | grep 'test_.*::' | wc -l)) unit tests passing!"
-```
-
-### Security Audit Workflow (Pre-Release)
-
-```bash
-# Step 1: Run security vulnerability scan with Bandit
-auto-lint security src/
-
-# Step 2: Check for dependency vulnerabilities in requirements.txt / package.json
-auto-linter dependencies .
-
-# Step 3: Review high-severity issues and fix manually if needed
-
-# Step 4: Re-scan to confirm all vulnerabilities resolved!
-auto-lint security src/
-```
-
-### Complexity Refactoring (Code Cleanup)
-
-```bash
-# Find functions that need refactoring due to complexity
-auto-linter complexity ./src/ --threshold=15
-
-# Review the output and refactor high-complexity functions manually
-
-# Verify improvement after refactoring!
-auto-lint check src/  # Governance score should improve if complex code was simplified
-```
-
-### Watch Mode (Active Development)
-
-**Terminal 1**: Start watch mode to auto-check on file changes:
-```bash
-auto-linter watch ./src/ --verbose
-# Output appears automatically whenever you save a .py, .js, or .ts file!
+adapters:
+  - name: ruff
+    status: enabled
+    weight: 1.0
+  - name: mypy
+    status: enabled
+    weight: 1.0
 ```
 
 ---
 
-## 🏗️ Architecture Overview (AES Standards)
+## Architecture
 
-### Directory Structure (Max Depth 5 - Compliant!)
+5-domain structure:
 
-```yaml
-src/auto_linter/          # Layer 1: Root package marker
-├── bootstrap/            # Layer 2: Dependency injection container
-│   └── container.py      # get_container() for DI pattern  
-├── core/                 # Layer 3: Business logic (vertical slices)
-│   ├── capabilities/     # Linting adapters & formatters
-│   │   ├── linting/formatters.py    # SARIF/JUnit output formatting
-│   │   └── complexity/radon_adapter.py  
-│   ├── domain/           # Core business rules and governance logic
-│   │   ├── governance.py  # Governance scoring (100.0 target)
-│   │   └── models.py      # Data structures & taxonomy definitions
-│   └── infrastructure/   # Layer 4: External tool adapters  
-├── surfaces/             # Layer 5: Explicit frontiers (Ingress/Egress points!)
-    ├── cli/main.py       # CLI entry point (~320 lines, ~16 commands)
-    └── mcp/tools.py      # MCP tools registration + hybrid pattern!
-
-tests/                    # Test layer at same depth as src/ for parity  
-├── bootstrap/unit/test_container.py        # DI container tests (12 tests ✅ PASSING)
-├── core/unit/*.py                  # 5 test files covering all use cases (~60+ tests ✅ PASSING!)
-├── infrastructure/unit/*.py   # Adapter tests for Python & JS linters  
-└── surfaces/unit/test_mcp.py           # MCP surface layer tool registration (6 tests ✅)
-
-Total: **179 unit tests - All passing! 100% coverage!** 🎉
+```
+src/
+├── agent/              # Lifecycle, orchestration, pipeline, DI container
+├── capabilities/       # Thinking logic — analysis, formatting, governance
+├── infrastructure/     # Adapters — ruff, mypy, eslint, transports
+├── surfaces/           # Interfaces — CLI (Click), MCP (FastMCP)
+└── taxonomy/           # Value objects, models, shared language
 ```
 
-### Governance Score Calculation
+### Dependency Rules
 
-The governance score is calculated using the formula:
-
-```python
-governance_score = sum(adapter_scores * adapter_weights) / total_weight_thresholds
-
-# Where each adapter contributes based on its type and severity thresholds:
-- Ruff (Python formatting): weight=0.25, threshold=10 violations max
-- MyPy (Type checking): weight=0.30, threshold=0 errors for 100 score!  
-- Bandit (Security scan): weight=0.15, threshold=0 vulnerabilities required
-- Radon (Complexity metrics): weight=0.20, threshold depends on function count
 ```
-
-**Target Score**: **100.0/100.0** - Any violation below this requires immediate remediation! 🚨
+surfaces      → capabilities       OK
+surfaces      → infrastructure     NO
+capabilities  → infrastructure     NO (use taxonomy interfaces)
+capabilities  → surfaces           NO
+infrastructure → taxonomy          OK
+agent         → everything         OK (wiring layer)
+```
 
 ---
 
-## 🤝 Contributing & Governance
+## Contributing
 
-We welcome community contributions but maintain extremely strict quality standards under the AES (Agentic Engineering System) framework:
+### How to Add an Adapter
 
-### Contribution Requirements ✅
+1. Create adapter in `src/infrastructure/<tool>_adapter.py` implementing [`ILinterAdapter`](src/taxonomy/interfaces.py)
+2. Register in [`src/agent/dependency_injection_container.py`](src/agent/dependency_injection_container.py)
+3. Add tests in `tests/infrastructure/test_<tool>_adapter.py`
+4. Run: `python3 -m pytest tests/ -q`
 
-| Requirement | Description | Verification Method |
-|-------------|-------------|---------------------|
-| **100% Test Coverage** | All new code must be covered by unit tests before merge! | `pytest --cov=src/auto_linter` shows 100% coverage required |
-| **Governance Score 100.0** | No violations allowed in merged code - run checks locally first! | `auto-lint check .` returns "is_passing: true" before PR submission |
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full details.
 
-### Getting Started Contributing
+### How to Add a CLI Command
 
-```bash
-# Clone the repository and set up your development environment  
-git clone https://github.com/rakaarwaky/auto_linter.git
-cd auto_linter && uv sync  # Installs all dependencies including test tools!
+1. Choose module in `src/surfaces/cli_*_commands.py` based on command type
+2. Add command using Click decorators
+3. Register in [`src/surfaces/mcp_command_catalog.py`](src/surfaces/mcp_command_catalog.py)
+4. Add tests
 
-# Run existing tests to verify installation is working correctly:
-uv run pytest -v --tb=short    # Should show "179 passed in X.XXs" ✅
-
-# Add new linters or adapters by following the adapter pattern documented below:
-src/auto_linter/infrastructure/adapters/python/ruff_adapter.py  # Example Python implementation!
-```
-
-### Code Review Process
-
-All PRs must pass automated checks before review begins. This includes:
-
-1. **Test Suite**: All existing tests passing + new test coverage for any changes made!
-2. **Governance Score Check**: `auto-lint check .` returns 100.0 score with no violations detected ✅  
-3. **Documentation Update**: README.md or SKILL.md updated if CLI/MCP interface changed
-
----
-
-## 📚 Additional Documentation
-
-| Document | Purpose | When to Read It |
-|----------|---------|-----------------|
-| [SKILL.md](./SKILL.md) | AI agent documentation with command examples and workflows | For AI agents using MCP tools! |
-| [GOVERNANCE.md](./GOVERNANCE.md) | Detailed governance standards, scoring rules & violation thresholds | Understanding what violations look like + how to fix them ✅ |
-| [IMPROVEMENT_PLAN.md](./IMPROVEMENT_PLAN.md) | Project improvement roadmap and current state assessment | If you want to understand project status or contribute! 🎯 |
-
----
-
-## 🔗 Quick Links
-
-- **Issue Tracker**: https://github.com/rakaarwaky/auto_linter/issues
-- **Documentation Index**: See [SKILL.md](./SKILL.md) for AI agents, this README for humans
-- **AES Framework**: Agentic Engineering System - Code is an Asset. Architecture is Economics! 🏛️
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full details.
 
 ---
 
 ## License
 
-This project is open-sourced under the MIT License. See LICENSE file for full terms and conditions of use.
-
-> [!IMPORTANT]  
-> A score of 100.0/100.0 governance score is mandatory before any code merge or deployment to production environments in AES-compliant projects! 🛡️
+MIT License. See [LICENSE](LICENSE).

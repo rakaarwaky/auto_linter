@@ -70,21 +70,36 @@ class DuplicateAdapter(ILinterAdapter):
         try:
             abs_path = os.path.abspath(path)
             if os.path.isfile(abs_path):
-                with open(abs_path, "r") as f:
-                    lines = f.readlines()
-                    if len(lines) > 500:
-                        results.append(LintResult(
-                            file=abs_path,
-                            line=1,
-                            column=0,
-                            code="DUPE001",
-                            message="File exceeds 500 lines; potential duplication or SRP violation.",
-                            source="duplicates",
-                            severity=Severity.LOW,
-                        ))
+                self._check_file(abs_path, results)
+            elif os.path.isdir(abs_path):
+                for dirpath, _, filenames in os.walk(abs_path):
+                    if "__pycache__" in dirpath or ".venv" in dirpath:
+                        continue
+                    for filename in filenames:
+                        if filename.endswith(".py") or filename.endswith(".js") or filename.endswith(".ts"):
+                            file_path = os.path.join(dirpath, filename)
+                            self._check_file(file_path, results)
         except Exception:
             pass
         return results
+
+    def _check_file(self, file_path: str, results: List[LintResult]):
+        """Helper to check a single file's length."""
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                if len(lines) > 500:
+                    results.append(LintResult(
+                        file=file_path,
+                        line=1,
+                        column=0,
+                        code="DUPE001",
+                        message=f"File exceeds 500 lines ({len(lines)}); potential duplication or SRP violation.",
+                        source="duplicates",
+                        severity=Severity.LOW,
+                    ))
+        except (OSError, UnicodeDecodeError):
+            pass
 
     def apply_fix(self, path: str) -> bool:
         return False

@@ -1,10 +1,12 @@
-"""Maintenance CLI commands: stats, clean, update, doctor."""
+"""Maintenance CLI commands: stats, clean, update, doctor, cancel."""
 import click
-import os
+import json
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from surfaces.mcp_desktop_client import _running_jobs
 
 
 def register_maintenance_commands(cli):
@@ -125,3 +127,18 @@ def register_maintenance_commands(cli):
       click.echo("\nRun 'auto-lint update' to fix missing adapters")
     else:
       click.echo("\n All systems healthy!")
+
+  @cli.command()
+  @click.argument('job_id')
+  def cancel(job_id):
+    """Cancel a running lint job."""
+    if job_id not in _running_jobs:
+      click.echo(f"Job '{job_id}' not found")
+      return
+    job_info = _running_jobs[job_id]
+    if job_info["status"] in ("completed", "failed", "cancelled"):
+      click.echo(f"Job already {job_info['status']}")
+      return
+    _running_jobs[job_id]["status"] = "cancelled"
+    _running_jobs[job_id]["completed_at"] = "now"
+    click.echo(f"Job {job_id} cancelled successfully")

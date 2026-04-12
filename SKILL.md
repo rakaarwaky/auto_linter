@@ -1,555 +1,292 @@
 ---
 name: auto-linter
-description: Core Infrastructure for Autonomous Linting & Governance Auditing.
+description: MCP server for autonomous linting and governance auditing.
 version: 1.0.0
-standard: AES-2026-Skill
-verified: 100% Coverage, 100.0 Score
 ---
 
-# Auto Linter Skill 🛡️
+# Auto Linter Skill
 
-This skill equips you with mandatory development infrastructure for empirical logic verification and automated governance. Use it to eliminate architectural drift and maintain a 100.0 quality score.
+MCP server that provides autonomous, multi-language linting and architectural governance auditing. Works as standalone CLI tool and as MCP server for AI agents via FastMCP (`mcp.server.fastmcp.FastMCP`).
 
-## 🧭 Agentic Directives
+## Install
 
-### 1. The 100.0 Score Gate
-Any code missing a perfect governance score is considered a "Liability." You MUST achieve `is_passing: true` and a `score: 100.0` before declaring any task complete.
-- **Tool**: Use `run_lint_check` to audit your assets.
-- **Action**: Failure to meet this gate requires immediate remediation.
+```bash
+pip install auto-linter
+```
 
-### 2. Governance-First Workflow
-Infrastructure must precede execution.
-1. **Format**: Apply `apply_safe_fixes` immediately after editing.
-2. **Review**: Run `run_lint_check` to detect semantic or type violations.
-3. **Iterate**: Do not move to functional testing until the surface is verified.
+For Hermes users: `auto-lint setup hermes`
 
-### 3. Inventory Control
-Minimize "Dead Stock."
-- Use the linter to identify unreachable code, unused imports, and redundant logic.
-- Treat every line of code as a cost center that must be justified by reaching a Surface.
+## MCP Tools (5 tools)
 
-## 🛠 MCP Tools (9 tools total)
+### `execute_command(action: str, args: dict | None)`
 
-### Core Governance Tools (7 tools)
+Execute any CLI command via DesktopCommander pipeline. This is the primary tool.
 
-#### `run_lint_check(path: str)`
-Run comprehensive linting analysis across all adapters. Orchestrates Ruff, MyPy, Bandit, Radon and more in one pass.
-
-**Parameters**:
-- `path` (str): Absolute path to file or directory for scanning
-
-**Returns**: JSON string with violations per adapter + governance score object  
 ```json
-{
-  "ruff": [], // empty = no formatting issues
-  "mypy": [{"file": "...", "line": 42, ...}], 
-  "bandit": [], // security scan results
-  "score": 95.5,
-  "is_passing": true,
-  "governance": {"threshold_met": true}
-}
+{"action": "check", "args": {"path": "./src/"}}
+{"action": "fix", "args": {"path": "./src/"}}
+{"action": "report", "args": {"path": "./src/", "format": "json"}}
+{"action": "security", "args": {"path": "./src/"}}
+{"action": "complexity", "args": {"path": "./src/"}}
 ```
 
-**When to use**: After every code change, before commits  
----
+All CLI commands are accessible through this tool.
 
-#### `apply_safe_fixes(path: str)`
-Apply automatic safe fixes (Ruff for Python, ESLint/Prettier for JS/TS). Never makes breaking changes.
+### `list_commands(domain: str | None)`
 
-**Parameters**:
-- `path` (str): Path to file or directory that needs fixing automatically!
+List all available CLI commands with descriptions and examples.
 
-**Returns**: JSON string with fix summary showing what was applied  
 ```json
-{
-  "fixes_applied": {
-    "/path/to/file.py": ["Unused import removed", "Formatted code"],
-    "./src/other.js": ["Prettier formatting"]
-  },
-  "total_fixes": 5,
-  "errors_encountered": [] // empty means all fixes succeeded! ✅
-}
+{"domain": null}
 ```
 
-**When to use**: Immediately after editing files before running full check  
----
+Returns: `{"check": {"description": "...", "example_usage": "auto-lint check /path"}, ...}`
 
-#### `lint_security(path: str)`
-Security vulnerability scan using Bandit. Detects SQL injection risks, XSS vulnerabilities, hardcoded secrets and more.
+### `read_skill_context(section: str | None)`
 
-**Parameters**:
-- `path` (str): Path to project directory for security scanning
+Read SKILL.md documentation sections.
 
-**Returns**: JSON array of security violations with severity levels  
 ```json
-[
-  {
-    "file": "/src/auth.py", 
-    "line": 142, 
-    "code": "B603", // Bandit error code
-    "message": "SQL injection vulnerability detected!",
-    "severity": "HIGH"
-  }
-]
+{"section": "mcp tools"}
 ```
 
-**When to use**: Before release deployment or after adding new dependencies  
----
+### `check_status(job_id: str | None)`
 
-#### `lint_complexity(path: str)`
-Code complexity analysis using Radon. Identifies functions exceeding cyclomatic complexity thresholds that need refactoring!
+Check status of running lint jobs.
 
-**Parameters**:
-- `path` (str): Path to project directory for complexity scanning
-
-**Returns**: JSON array of high-complexity function locations  
 ```json
-[
-  {
-    "file": "/src/complex_logic.py", 
-    "function": "process_data()",
-    "line": 89,
-    "score": 25 // Cyclomatic complexity score (threshold is typically ~10)
-  }
-]
+{"job_id": "abc12345"}
 ```
 
-**When to use**: During code review sessions or refactoring sprints  
----
+> **Note**: To cancel a job, use CLI: `auto-lint cancel <job_id>`
 
-#### `lint_dependencies(path: str)`
-Dependency vulnerability scan using pip-audit. Checks requirements.txt and package.json for known CVEs!
+### `health_check()`
 
-**Parameters**:
-- `path` (str): Project root directory containing dependency files
+Check DesktopCommander and transport health status.
 
-**Returns**: JSON array of vulnerable dependencies with patch versions recommended  
-```json
-[
-  {
-    "package": "requests", 
-    "version": "2.19.0", // Vulnerable version found! ❌
-    "cve_id": "CVE-2023-XXXXX",
-    "advisory": "Known vulnerability in this package version"
-  }
-]
+Returns: `{"status": "...", "protocol": "...", ...}`
+
+## Recommended Agent Workflow
+
+```
+1. list_commands()              — discover available commands
+2. execute_command("check", {"path": "./src/"})  — run lint
+3. execute_command("fix", {"path": "./src/"})    — auto-fix
+4. execute_command("check", {"path": "./src/"})  — verify
 ```
 
-**When to use**: Weekly security scans or after updating dependencies  
----
+## CLI Commands Reference
 
-#### `lint_duplicates(path: str)`
-Duplicate code detection across the project. Finds copy-pasted logic and oversized files that violate single-responsibility principle!
+### Core
 
-**Parameters**:
-- `path` (str): Path to scan for duplication patterns
-
-**Returns**: JSON array of duplicate blocks with file locations  
-```json
-[
-  {
-    "file": "/src/utils.py", 
-    "line_range": [45, 78], // Lines containing duplicated code! ⚠️
-    "similarity_score": 0.92, // Very similar to another block elsewhere
-    "duplicate_of": "/lib/legacy_utils.py:12-34"
-  }
-]
-```
-
-**When to use**: During refactoring sessions or before major code merges  
----
-
-#### `lint_trends(path: str)`
-Quality trends over time analysis. Detects regressions in governance score between check runs!
-
-**Parameters**:
-- `path` (str): Project directory for trend comparison against history  
-
-**Returns**: JSON array of quality trend warnings if any regression detected  
-```json
-[
-  {
-    "metric": "governance_score", 
-    "current_value": 85.0, // Dropped from previous run! ❌
-    "previous_value": 92.3,
-    "trend_direction": "DECLINING"
-  }
-]
-```
-
-**When to use**: Sprint retrospectives or before release candidate builds  
----
-
-### Hybrid Architecture Tools (2 tools)
-
-These enable **unlimited CLI command discovery and execution** without hitting MCP tool limits! 🚀
-
-#### `list_commands(domain: str | None = None)`
-List all available CLI commands with their descriptions. Enables agents to discover capabilities dynamically!
-
-**Parameters**:
-- Optional domain filter string (e.g., `"lint"`) - if provided, returns only matching sub-actions for that category
-
-**Returns**: JSON object mapping command names → description + example_usage  
-```json
-{
-  "check": {
-    "description": "Run full governance analysis on path/file", 
-    "example_usage": "auto-lint check /path/to/src/"
-  },
-  "fix": {
-    "description": "Apply safe fixes automatically (Ruff, ESLint, Prettier)", 
-    "example_usage": "auto-linter fix ./src/ --verbose"
-  }
-}
-
-// With domain filter: {"lint": ["check", "scan", "fix", ...]}
-```
-
-**When to use**: When discovering what CLI actions are available before execution!  
----
-
-#### `execute_command(action: str, args: dict | None = None)`
-Execute ANY CLI command from the Auto-Linter catalog. Core of hybrid architecture pattern - enables unlimited scalability without tool limits! 🎯
-
-**Parameters**:
-- `action` (str): Command name from available commands list (e.g., `"check"`, `"fix"`)  
-- Optional args dict with key-value pairs for optional command arguments: `{path: "./src/", format: "json", exit_zero: true}`
-
-**Returns**: JSON object containing full subprocess output + return code!
-```json
-{
-  "command": "auto-lint check ./src/ --format json", // Full CLI command executed!
-  "stdout": "{\"score\":95.0,\"is_passing\":true,...}", // Command's stdout captured here! ✅
-  "stderr": "", // Any stderr output (empty = success!) 
-  "returncode": 0, // Exit code: 0=success, non-zero=failure/issue found ❌
-}
-
-// Error case example:
-{
-  "error": "Invalid action 'foobar'. Valid actions are: check, fix...",
-  "valid_actions_count": 16,
-  "suggestion": "Use one of the listed valid actions"
-}
-```
-
-**When to use**: Execute any CLI command dynamically via MCP without hardcoding tool schemas!  
----
-
-## 💻 CLI Commands (15+ commands)
-
-### Core Commands
-
-#### `auto-lint check <path>`
-Run all linters and check governance score.
-
-```bash
-# Basic check
-auto-lint check src/
-
-# JSON output
-auto-lint check src/ --format json
-```
-
-**Returns**: Score + violations per adapter
-
-**When to use**: After every code change
-
----
-
-#### `auto-lint scan <path>`
-Full deep scan (alias for check).
-
-```bash
-auto-lint scan src/
-```
-
----
-
-#### `auto-lint fix <path>`
-Apply safe fixes automatically.
-
-```bash
-auto-lint fix src/
-```
-
-**Fixes**:
-- Unused imports (Ruff)
-- Format issues (Prettier)
-- Style violations (ESLint)
-
-**When to use**: Immediately after editing
-
----
-
-#### `auto-lint report <path>`
-Generate detailed quality report.
-
-```bash
-# Text report
-auto-lint report src/
-
-# JSON for CI
-auto-lint report src/ --format json
-
-# SARIF for GitHub
-auto-lint report src/ --format sarif
-
-# JUnit for Jenkins
-auto-lint report src/ --format junit
-```
-
----
-
-### Specialized Scans
-
-#### `auto-lint security <path>`
-Security vulnerability scan (Bandit).
-
-```bash
-auto-lint security src/
-```
-
-**Detects**: SQL injection, XSS, hardcoded secrets, etc.
-
-**When to use**: Before release
-
----
-
-#### `auto-lint complexity <path>`
-Analyze code complexity.
-
-```bash
-auto-lint complexity src/
-```
-
-**Returns**: Functions exceeding complexity threshold
-
-**When to use**: During refactoring
-
----
-
-#### `auto-lint duplicates <path>`
-Find duplicate code blocks.
-
-```bash
-auto-lint duplicates src/
-```
-
----
-
-#### `auto-lint trends <path>`
-Show quality trends over time.
-
-```bash
-auto-lint trends .
-```
-
-**Returns**: Week-over-week scores
-
----
-
-### CI/CD Commands
-
-#### `auto-lint ci <path>`
-CI/CD mode: fails if governance < 100.
-
-```bash
-# In CI pipeline
-auto-lint ci src/ --exit-zero
-
-# Exit code 1 if score < 100
-auto-lint ci src/
-```
-
-**When to use**: Pre-merge gates
-
----
-
-#### `auto-lint batch <paths...>`
-Run on multiple paths.
-
-```bash
-auto-lint batch src/ tests/ scripts/
-```
-
-**Returns**: Pass/fail per path
-
----
-
-### Setup Commands
-
-#### `auto-lint init <path>`
-Initialize configuration.
-
-```bash
-auto-lint init .
-```
-
-**Creates**: `.auto_linter.json`
-
----
-
-#### `auto-lint install-hook`
-Install git pre-commit hook.
-
-```bash
-auto-lint install-hook
-```
-
-**When to use**: Project setup
-
----
-
-#### `auto-lint uninstall-hook`
-Remove git pre-commit hook.
-
-```bash
-auto-lint uninstall-hook
-```
-
----
-
-#### `auto-lint version`
-Show version information.
-
-```bash
-auto-lint version
-```
-
----
-
-#### `auto-lint adapters`
-List available adapters.
-
-```bash
-auto-lint adapters
-```
-
----
-
-#### `auto-lint watch <path>`
-Watch mode: auto-lint on file changes.
-
-```bash
-auto-lint watch src/
-```
-
-**When to use**: During development
-
----
-
-## 🔄 Common Workflows
-
-### Pre-Commit Quality Gate
-```bash
-# 1. Apply safe fixes
-auto-lint fix src/
-
-# 2. Run full check
-auto-lint check src/
-
-# 3. If governance < 100, fix violations
-# 4. Re-check
-auto-lint check src/
-```
-
-### CI/CD Pipeline
-```yaml
-# GitHub Actions example
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: pip install auto-linter
-      - run: auto-lint ci src/ --format sarif --output report.sarif
-      
-      - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: report.sarif
-```
-
-### Security Audit
-```bash
-# 1. Security scan
-auto-lint security src/
-
-# 2. Dependency scan
-auto-lint dependencies .
-
-# 3. Fix high-severity issues
-# 4. Re-scan
-auto-lint security src/
-```
-
-### Complexity Refactoring
-```bash
-# 1. Find complex functions
-auto-lint complexity src/
-
-# 2. Refactor listed functions
-
-# 3. Verify improvement
-auto-lint complexity src/
-```
-
-### Watch Mode Development
-```bash
-# Terminal 1: Start watch mode
-auto-lint watch src/
-
-# Terminal 2: Edit code
-# Auto-linter runs automatically on save
-```
-
-## 📐 Governance Standards (AES-2026)
-
-Ensure all implementations adhere to:
-- **Max Depth 5**: Directory nesting ≤ 5 levels
-- **Vertical Slicing**: Features cohesive within single slice
-- **Explicit Frontiers**: Every file has clear Ingress/Egress
-
-## ⚠️ Adapter Limitations
-
-| Adapter | Limitations |
+| Command | Description |
 |---------|-------------|
-| Ruff | Python only, safe fixes only |
-| MyPy | Type hints required |
-| ESLint | JS/TS only, needs config |
-| Bandit | Python security only |
-| Radon | Complexity metrics only |
+| `auto-lint check <path>` | Run all linters, check governance score |
+| `auto-lint scan <path>` | Alias for check (CI-friendly) |
+| `auto-lint fix <path>` | Apply safe fixes automatically |
+| `auto-lint report <path> --format json` | Generate quality report (text/json/sarif/junit) |
+| `auto-lint ci <path>` | CI mode with exit codes |
 
-## 🎯 Hybrid Architecture Pattern
+### Scans
 
-This skill implements the **MCP+CLI+SKILL** hybrid pattern:
+| Command | Description |
+|---------|-------------|
+| `auto-lint security <path>` | Bandit vulnerability scan |
+| `auto-lint complexity <path>` | Cyclomatic complexity analysis |
+| `auto-lint duplicates <path>` | Code duplication detection |
+| `auto-lint trends <path>` | Quality trends over time |
+| `auto-lint dependencies <path>` | Dependency vulnerability scan |
+
+### Setup
+
+| Command | Description |
+|---------|-------------|
+| `auto-lint setup init` | Auto-configure environment |
+| `auto-lint setup hermes` | Auto-install into Hermes Agent |
+| `auto-lint setup doctor` | Diagnose issues |
+| `auto-lint setup mcp-config` | Print MCP config for clients |
+
+### Dev
+
+| Command | Description |
+|---------|-------------|
+| `auto-lint diff <path1> <path2>` | Compare lint results between two versions |
+| `auto-lint suggest <path>` | AI-powered fix suggestions (--ai flag) |
+| `auto-lint config show\|edit\|reset` | View, edit, or reset configuration settings |
+| `auto-lint export sarif\|junit\|json` | Export lint reports to file (-o output) |
+| `auto-lint ignore <rule>` | Manage ignore rules (--remove to delete) |
+| `auto-lint init` | Initialize a new Auto-Linter configuration |
+| `auto-lint install-hook` | Install git pre-commit hook |
+| `auto-lint uninstall-hook` | Remove git pre-commit hook |
+
+### Maintenance
+
+| Command | Description |
+|---------|-------------|
+| `auto-lint cancel <job_id>` | Cancel a running lint job |
+| `auto-lint stats <path>` | Statistics dashboard |
+| `auto-lint clean` | Cleanup cache |
+| `auto-lint update` | Update adapters |
+| `auto-lint doctor` | Diagnose issues |
+| `auto-lint version` | Show version |
+| `auto-lint adapters` | List enabled linters |
+
+### Other
+
+| Command | Description |
+|---------|-------------|
+| `auto-lint watch <path>` | Watch files, auto-lint on changes |
+| `auto-lint batch <p1> <p2>` | Check multiple paths |
+
+## Transport
+
+Connects to DesktopCommander for command execution. Auto-detected: socket -> http -> stdio.
 
 ```
-AI Agent
-  ↓
-5 MCP Tools (execute_command, list_commands, etc.)
-  ↓
-15+ CLI Commands (check, fix, report, etc.)
-  ↓
-SKILL.md Context (this file)
+DESKTOP_COMMANDER_URL              Mode             Requires
+──────────────────────────────────────────────────────────────
+/run/desktop-commander/socket      Unix Socket      DesktopCommander
+http://localhost:24680/execute     HTTP             HTTP wrapper
+auto (default)                     Auto-detect      tries socket -> http -> stdio
 ```
 
-**Benefits**:
-- ✅ Unlimited capabilities (not limited by MCP tool count)
-- ✅ 84% token savings vs pure MCP
-- ✅ Humans can use CLI directly
-- ✅ AI agents use MCP tools
+Default socket: `/run/desktop-commander/socket`
 
-**Discovery**:
-1. Read this SKILL.md (system context)
-2. Call `list_commands()` for catalog
-3. Use `execute_command(action, args)` for any command
+## Adapters
+
+| Adapter | Language | Weight | Notes |
+|---------|----------|--------|-------|
+| ruff | Python | 1.0 | Formatting + linting |
+| mypy | Python | 1.0 | Type checking |
+| bandit | Python | 1.0 | Security scanning |
+| radon | Python | 1.0 | Complexity metrics |
+| eslint | JS/TS | 1.0 | Linting |
+| prettier | JS/TS | 0.5 | Formatting |
+| tsc | TypeScript | 1.0 | Type checking |
+| governance | All | 1.0 | Architecture rules |
+
+## Configuration
+
+### .env (optional)
+
+```bash
+DESKTOP_COMMANDER_URL=/run/desktop-commander/socket
+PHANTOM_ROOT=$HOME/
+```
+
+### auto_linter.config.yaml (optional)
+
+```yaml
+thresholds:
+  score: 80.0
+  complexity: 10
+  max_file_lines: 500
+```
 
 ---
 
-> [!IMPORTANT]
-> A score of 100.0 is mandatory. If you cannot resolve violations, switch to `PLANNING` mode and consult the Human Architect.
+## Governance Rules (Architecture Enforcement)
 
-> [!NOTE]
-> For production use, integrate with CI/CD using `auto-lint ci` with appropriate exit codes.
+Governance rules are **configurable** - by default empty, but you can define rules for your architecture.
+
+
+### AES Architecture (Auto-Linter's Own)
+
+```yaml
+# AES = Agent, Capabilities, Surfaces, Taxonomy, Infrastructure
+layer_map:
+  agent: agent
+  capabilities: capabilities
+  surfaces: surfaces
+  taxonomy: taxonomy
+  infrastructure: infrastructure
+
+governance_rules:
+  - from: surfaces
+    to: infrastructure
+    description: "Surface must not import Infrastructure directly"
+  - from: capabilities
+    to: infrastructure
+    description: "Capabilities must not import Infrastructure (use Taxonomy)"
+  - from: capabilities
+    to: surfaces
+    description: "Capabilities must not import Surface"
+  - from: infrastructure
+    to: surfaces
+    description: "Infrastructure must not import Surface"
+```
+
+### Clean Architecture (Uncle Bob)
+
+
+```yaml
+layer_map:
+  entities: entities
+  usecases: usecases
+  interfaces: interfaces
+  frameworks: frameworks
+
+governance_rules:
+  - from: entities
+    to: usecases
+    description: "Entities should not know Use Cases"
+  - from: usecases
+    to: interfaces
+    description: "Use Cases must not know Framework details"
+```
+
+### Hexagonal Architecture (Ports & Adapters)
+
+```yaml
+layer_map:
+  domain: domain
+  application: application
+  ports: ports
+  adapters: adapters
+
+governance_rules:
+  - from: domain
+    to: application
+    description: "Domain should not depend on Application"
+  - from: domain
+    to: adapters
+    description: "Domain should not depend on Adapters"
+  - from: adapters
+    to: domain
+    description: "Adapters must use Ports to access Domain"
+```
+
+### Onion Architecture
+
+```yaml
+layer_map:
+  core: core
+  application: application
+  infrastructure: infrastructure
+
+governance_rules:
+  - from: core
+    to: application
+    description: "Core must not know Application layer"
+  - from: core
+    to: infrastructure
+    description: "Core must not know Infrastructure"
+```
+
+### DDD (Domain-Driven Design)
+
+```yaml
+layer_map:
+  domain: domain
+  application: application
+  infrastructure: infrastructure
+  interfaces: interfaces
+
+governance_rules:
+  - from: domain
+    to: infrastructure
+    description: "Domain must not depend on Infrastructure"
+  - from: domain
+    to: application
+    description: "Domain should be framework-agnostic"
+```

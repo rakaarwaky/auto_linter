@@ -23,6 +23,7 @@ from infrastructure.desktop_commander_adapter import (
 )
 from infrastructure.http_request_client import HTTPClient
 from infrastructure.unix_socket_client import UnixSocketClient
+from infrastructure.stdio_transport_client import StdioClient
 from infrastructure.git_hooks_manager import GitHookManager
 
 __all__ = [
@@ -43,5 +44,6 @@ __all__ = [
     "execute_via_desktop_commander",
     "HTTPClient",
     "UnixSocketClient",
+    "StdioClient",
     "GitHookManager",
 ]

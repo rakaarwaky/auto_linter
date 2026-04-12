@@ -1,15 +1,41 @@
 """MCP Tool: execute_command - Universal CLI executor via DesktopCommander."""
 import json
-import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
-from typing import Any
 
 from surfaces.mcp_desktop_client import (
     _get_client,
     _execute_with_retry,
-    _running_jobs,
 )
+
+# Use agent's job tracking - this was previously duplicated here
+from agent.tracking_job_registry import create_job, complete_job, fail_job
+
+# Runtime jobs dict for backward compatibility - delegates to agent
+_running_jobs: dict = {}
+
+
+def _track_job(job_id: str, status: str, action: str = ""):
+    """Delegate job tracking to agent's registry."""
+    _running_jobs[job_id] = {
+        "status": status,
+        "action": action,
+        "started_at": datetime.now(UTC).isoformat(),
+    }
+
+
+def _complete_track_job(job_id: str, result: dict):
+    """Mark job as completed in runtime dict."""
+    _running_jobs[job_id]["status"] = "completed"
+    _running_jobs[job_id]["completed_at"] = datetime.now(UTC).isoformat()
+    _running_jobs[job_id]["result"] = result
+
+
+def _fail_track_job(job_id: str, error: str):
+    """Mark job as failed in runtime dict."""
+    _running_jobs[job_id]["status"] = "failed"
+    _running_jobs[job_id]["completed_at"] = datetime.now(UTC).isoformat()
+    _running_jobs[job_id]["result"] = {"error": error}
 
 
 def register_execute_command(mcp):
@@ -61,12 +87,9 @@ def register_execute_command(mcp):
             if key != 'path':
                 cli_cmd.extend([f"--{key}", str(value)])
 
-        job_id = str(uuid.uuid4())[:8]
-        _running_jobs[job_id] = {
-            "status": "running",
-            "action": action,
-            "started_at": datetime.utcnow().isoformat(),
-        }
+        # Use agent's job tracking - creates proper job in registry
+        job_id = create_job(action)
+        _track_job(job_id, "running", action)
 
         try:
             client = _get_client()
@@ -80,16 +103,16 @@ def register_execute_command(mcp):
 
             if "protocol" not in result:
                 result["protocol"] = client.protocol or "Unknown"
-            _running_jobs[job_id]["status"] = "completed"
-            _running_jobs[job_id]["completed_at"] = datetime.utcnow().isoformat()
-            _running_jobs[job_id]["result"] = result
+            # Use agent's job tracking
+            complete_job(job_id, result)
+            _complete_track_job(job_id, result)
             result["job_id"] = job_id
             return json.dumps(result)
         except Exception as e:
             client = _get_client()
-            _running_jobs[job_id]["status"] = "failed"
-            _running_jobs[job_id]["completed_at"] = datetime.utcnow().isoformat()
-            _running_jobs[job_id]["result"] = {"error": str(e)}
+            # Use agent's job tracking
+            fail_job(job_id, str(e))
+            _fail_track_job(job_id, str(e))
             return json.dumps({
                 "error": f"Command execution failed: {str(e)}",
                 "protocol": client.protocol or "Unknown",

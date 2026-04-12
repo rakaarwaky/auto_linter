@@ -1,0 +1,50 @@
+# Auto-Linter Project Configuration
+# Structured settings for linting behavior. Edit per-project.
+# Environment variables (.env) override transport/path settings here.
+
+project:
+  name: auto-linter
+
+thresholds:
+  score: 80.0          # Minimum governance score (0-100)
+  complexity: 10       # Max cyclomatic complexity per function
+  max_file_lines: 500  # Max lines per file
+
+adapters:
+  - name: ruff
+    status: enabled
+    weight: 1.0
+  - name: mypy
+    status: enabled
+    weight: 1.0
+  - name: bandit
+    status: enabled
+    weight: 1.0
+  - name: radon
+    status: enabled
+    weight: 1.0
+  - name: prettier
+    status: enabled
+    weight: 0.5
+  - name: tsc
+    status: enabled
+    weight: 1.0
+  - name: eslint
+    status: enabled
+    weight: 1.0
+  - name: governance
+    status: enabled
+    weight: 1.0
+
+ignored_paths:
+  - node_modules
+  - .venv
+  - __pycache__
+  - dist
+  - build
+  - .git
+  - .mypy_cache
+  - .ruff_cache
+  - .pytest_cache
+
+ignored_rules: []

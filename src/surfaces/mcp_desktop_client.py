@@ -1,41 +1,29 @@
-"""MCP tool registry - bridges capabilities to the MCP surface layer.
+"""MCP tool: DesktopCommander client bridge.
 
-Split into granular modules:
-- tools_client.py     - execute_command + retry logic
-- tools_catalog.py    - list_commands + read_skill_context
-- tools_jobs.py       - check_status + cancel_job
-- tools_health.py     - health_check
+Surface layer delegate to agent for transport.
+No direct infrastructure imports — agent owns the connection.
 """
-import json
 import os
 import asyncio
-from pathlib import Path
-from typing import Any, Optional
-from mcp.server.fastmcp import FastMCP
-from agent.dependency_injection_container import Container
-from infrastructure.desktop_commander_adapter import DesktopCommanderAdapter
+from typing import Any
 
 DESKTOP_COMMANDER_URL = os.environ.get(
     "DESKTOP_COMMANDER_URL",
     "/run/desktop-commander/socket"
 )
 
-_desktop_commander_client: Optional[DesktopCommanderAdapter] = None
 _running_jobs: dict[str, dict] = {}
 
 
-def _get_client() -> DesktopCommanderAdapter:
-    global _desktop_commander_client
-    if _desktop_commander_client is None:
-        _desktop_commander_client = DesktopCommanderAdapter(
-            url=DESKTOP_COMMANDER_URL,
-            auto_detect=True
-        )
-    return _desktop_commander_client
+def _get_client():
+    """Get DesktopCommander client from agent container."""
+    from agent.dependency_injection_container import get_container
+    container = get_container()
+    return container.desktop_commander
 
 
 async def _execute_with_retry(
-    client: DesktopCommanderAdapter,
+    client,
     command: list[str],
     working_dir: str,
     timeout: int,

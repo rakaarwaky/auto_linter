@@ -5,9 +5,7 @@ import os
 import time
 
 
-def register_watch_command(cli):
-
-  class LintHandler:
+class LintHandler:
     """Lazy-imported watchdog handler to avoid startup errors."""
     def __init__(self, path):
       from watchdog.events import FileSystemEventHandler
@@ -26,25 +24,27 @@ def register_watch_command(cli):
 
       self._handler = _Handler()
 
-  @cli.command()
-  @click.argument('path', type=click.Path(exists=True))
-  def watch(path):
-    """Watch for file changes and run linters automatically."""
-    try:
-      from watchdog.observers import Observer
-    except ImportError:
-      click.echo("Error: 'watchdog' is not installed. Run: pip install watchdog")
-      return
 
-    abs_path = os.path.abspath(path)
-    click.echo(f" Watching {abs_path} for changes...")
-    lint_handler = LintHandler(abs_path)
-    observer = Observer()
-    observer.schedule(lint_handler._handler, abs_path, recursive=True)
-    observer.start()
-    try:
-      while True:
-        time.sleep(1)
-    except KeyboardInterrupt:
-      observer.stop()
-    observer.join()
+def register_watch_command(cli):
+    @cli.command()
+    @click.argument('path', type=click.Path(exists=True))
+    def watch(path):
+        """Watch for file changes and run linters automatically."""
+        try:
+            from watchdog.observers import Observer
+        except ImportError:
+            click.echo("Error: 'watchdog' is not installed. Run: pip install watchdog")
+            return
+
+        abs_path = os.path.abspath(path)
+        click.echo(f" Watching {abs_path} for changes...")
+        lint_handler = LintHandler(abs_path)
+        observer = Observer()
+        observer.schedule(lint_handler._handler, abs_path, recursive=True)
+        observer.start()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            observer.stop()
+        observer.join()

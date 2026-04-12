@@ -1,6 +1,8 @@
 import os
 from taxonomy.relative_path_resolver import normalize_path
 
+from unittest.mock import patch
+
 def test_normalize_path_empty():
     assert normalize_path("") == ""
     assert normalize_path(None) is None
@@ -11,7 +13,11 @@ def test_normalize_path_slashes():
 def test_normalize_path_phantom_root():
     path = "/home/raka/src/core/models.py"
     expected = "/persistent/home/raka/mcp-servers/auto_linter/src/core/models.py"
-    assert normalize_path(path) == expected
+    with patch.dict("os.environ", {
+        "PHANTOM_ROOT": "/home/raka/src/",
+        "PROJECT_ROOT": "/persistent/home/raka/mcp-servers/auto_linter/src/"
+    }):
+        assert normalize_path(path) == expected
 
 def test_normalize_path_relative_src():
     # Mock current working directory to contain auto_linter

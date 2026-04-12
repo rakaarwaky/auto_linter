@@ -26,22 +26,29 @@ from taxonomy.lint_result_models import ILinterAdapter, LintResult, Severity, IS
 
 
 # ─── Layer Rule Definitions ─────────────────────────────────────────────────
+# DEFAULT rules (can be overridden via config file)
+# Configurable via .auto_linter.json or auto_linter.config.yaml
+# Example config:
+#   governance_rules:
+#     - from: surfaces
+#       to: infrastructure
+#       description: "Surface must not import Infrastructure"
+#     - from: capabilities
+#       to: surfaces
+#       description: "Capabilities must not import Surface"
 
-# Each rule: (source_layer_key, forbidden_target_key, description)
-LAYER_RULES: List[Tuple[str, str, str]] = [
-    ("surfaces", "infrastructure", "Surface layer must not import Infrastructure directly"),
-    ("capabilities", "infrastructure", "Capabilities layer must not import Infrastructure (use Taxonomy interfaces)"),
-    ("capabilities", "surfaces", "Capabilities layer must not import Surface layer"),
-    ("infrastructure", "surfaces", "Infrastructure layer must not import Surface layer"),
-]
+# Default empty — rules must be configured via config or SKILL.md guidance
+# Komunitas bisa define rules sendiri
+LAYER_RULES: List[Tuple[str, str, str]] = []
 
-# Import path segment → layer name
+# Default layer map
 LAYER_MAP = {
-    "surfaces":     "surfaces",
-    "capabilities": "capabilities",
-    "taxonomy":     "taxonomy",
     "infrastructure": "infrastructure",
-    "agent":        "agent",
+    "capabilities": "capabilities",
+    "surfaces": "surfaces",
+    "domain": "domain",
+    "agent": "agent",
+    "taxonomy": "taxonomy",
 }
 
 GOVERNANCE_CODE = "AES001"
@@ -72,32 +79,6 @@ def _extract_imports(file_path: str) -> List[Tuple[int, str]]:
     return imports
 
 
-def _detect_layer(module_path: str) -> Optional[str]:
-    """
-    Given a dotted module path like 'src.infrastructure.adapters.python',
-    return the AES layer name or None if unknown.
-    """
-    parts = module_path.split(".")
-    for part in parts:
-        if part in LAYER_MAP:
-            return LAYER_MAP[part]
-    return None
-
-
-def _detect_file_layer(file_path: str, root_dir: str) -> Optional[str]:
-    """
-    Derive the AES layer of a file from its path relative to the source root.
-    """
-    rel = os.path.relpath(file_path, root_dir)
-    parts = rel.replace("\\", "/").split("/")
-    for part in parts:
-        if part in LAYER_MAP:
-            return LAYER_MAP[part]
-    return None
-
-
-# ─── GovernanceAdapter ───────────────────────────────────────────────────────
-
 class GovernanceAdapter(ILinterAdapter):
     """
     Enforces AES architectural layer rules across Python files (Capability).
@@ -106,11 +87,50 @@ class GovernanceAdapter(ILinterAdapter):
     the call sites using ISemanticTracer.trace_call_chain for richer context.
     """
 
-    def __init__(self, tracer: Optional[ISemanticTracer] = None):
+    def __init__(
+        self,
+        tracer: Optional[ISemanticTracer] = None,
+        rules: Optional[List[Tuple[str, str, str]]] = None,
+        layer_map: Optional[dict] = None
+    ):
         self.tracer = tracer
+        self._rules = rules
+        self._layer_map = layer_map
 
     def name(self) -> str:
         return "governance"
+
+    def _get_rules(self) -> List[Tuple[str, str, str]]:
+        if self._rules is not None:
+            return self._rules
+        return LAYER_RULES
+
+    def _get_layer_map(self) -> dict:
+        if self._layer_map is not None:
+            return self._layer_map
+        return LAYER_MAP
+
+    def _detect_layer(self, module_path: str, layer_map: dict) -> Optional[str]:
+        """
+        Given a dotted module path like 'src.infrastructure.adapters.python',
+        return the AES layer name or None if unknown.
+        """
+        parts = module_path.split(".")
+        for part in parts:
+            if part in layer_map:
+                return layer_map[part]
+        return None
+
+    def _detect_file_layer(self, file_path: str, root_dir: str, layer_map: dict) -> Optional[str]:
+        """
+        Derive the AES layer of a file from its path relative to the source root.
+        """
+        rel = os.path.relpath(file_path, root_dir)
+        parts = rel.replace("\\", "/").split("/")
+        for part in parts:
+            if part in layer_map:
+                return layer_map[part]
+        return None
 
     def scan(self, path: str) -> List[LintResult]:
         """
@@ -121,8 +141,11 @@ class GovernanceAdapter(ILinterAdapter):
         python_files = _collect_python_files(path)
         results: List[LintResult] = []
 
+        layer_rules = self._get_rules()
+        layer_map = self._get_layer_map()
+
         for file_path in python_files:
-            file_layer = _detect_file_layer(file_path, root_dir)
+            file_layer = self._detect_file_layer(file_path, root_dir, layer_map)
 
             # agent is allowed to import everything — skip
             if file_layer == "agent" or file_layer is None:
@@ -130,11 +153,11 @@ class GovernanceAdapter(ILinterAdapter):
 
             imports = _extract_imports(file_path)
             for line_no, module_path in imports:
-                target_layer = _detect_layer(module_path)
+                target_layer = self._detect_layer(module_path, layer_map)
                 if target_layer is None:
                     continue
 
-                for source_rule, forbidden_target, description in LAYER_RULES:
+                for source_rule, forbidden_target, description in layer_rules:
                     if file_layer == source_rule and target_layer == forbidden_target:
                         violation = self._build_violation(
                             file_path=file_path,

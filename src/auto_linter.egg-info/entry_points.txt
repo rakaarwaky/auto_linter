@@ -1,0 +1,3 @@
+[console_scripts]
+auto-lint = surfaces.cli_main_entry:main
+auto-linter = surfaces.mcp_server_entry:main

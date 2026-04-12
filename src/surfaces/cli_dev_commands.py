@@ -3,7 +3,6 @@ import asyncio
 import click
 import json
 import os
-import shlex
 import subprocess
 from pathlib import Path
 from agent.dependency_injection_container import get_container
@@ -14,7 +13,7 @@ def register_dev_commands(cli):
   @cli.command()
   @click.argument('path1', type=click.Path(exists=True))
   @click.argument('path2', type=click.Path(exists=True))
-  @click.option('--format', type=click.Choice(['text', 'json']), default='text')
+  @click.option('--output-format', type=click.Choice(['text', 'json']), default='text')
   def diff(path1, path2, output_format):
     """Compare lint results between two versions."""
     container = get_container()
@@ -61,12 +60,12 @@ def register_dev_commands(cli):
       if data['score'] < 100:
         click.echo(f"  Governance score is {data['score']:.1f}/100")
         click.echo(f" → Run 'auto-lint fix {path}' to apply safe fixes")
-        click.echo(f" → Review remaining issues manually")
+        click.echo(" → Review remaining issues manually")
       else:
-        click.echo(f"  Code is at 100.0 governance score!")
+        click.echo("  Code is at 100.0 governance score!")
 
       if ai:
-        click.echo(f"\n  AI suggestions: Coming soon (requires LLM integration)")
+        click.echo("\n  AI suggestions: Coming soon (requires LLM integration)")
 
     asyncio.run(_suggest())
 

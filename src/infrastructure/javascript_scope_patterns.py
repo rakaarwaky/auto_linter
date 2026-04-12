@@ -1,7 +1,7 @@
 """JS/TS regex patterns and scope detection helpers."""
 from __future__ import annotations
 import re
-from typing import List, Optional, Tuple, cast
+from typing import List, Optional
 
 # Function declarations and expressions
 _FUNCTION_PATTERNS: List[re.Pattern] = [

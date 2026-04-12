@@ -5,7 +5,6 @@ from typing import List, Optional, Tuple, cast
 
 from infrastructure.javascript_scope_patterns import (
     detect_js_scope,
-    find_scope_bounds,
 )
 
 

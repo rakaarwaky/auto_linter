@@ -16,7 +16,7 @@ def test_register_tools():
 
     register_tools(mcp, container)
 
-    # Verify: 6 core tools (execute_command, list_commands, read_skill_context,
-    # check_status, cancel_job, health_check)
-    assert mcp.tool.call_count == 6
+    # Verify: 5 core tools (execute_command, list_commands, read_skill_context,
+    # check_status, health_check)
+    assert mcp.tool.call_count == 5
 

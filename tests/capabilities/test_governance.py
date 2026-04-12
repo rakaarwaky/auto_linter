@@ -4,13 +4,12 @@ Unit tests for the GovernanceAdapter architectural layer enforcement.
 import os
 import tempfile
 import textwrap
+import pytest
 from unittest.mock import MagicMock
 
-
+import capabilities.linting_governance_adapter as gov_module
 from capabilities.linting_governance_adapter import (
     GovernanceAdapter,
-    _detect_layer,
-    _detect_file_layer,
     _extract_imports,
     _collect_python_files,
     _resolve_root,
@@ -19,51 +18,92 @@ from capabilities.linting_governance_adapter import (
 from taxonomy.lint_result_models import Severity
 
 
+@pytest.fixture(autouse=True)
+def setup_governance_config():
+    """Set up default governance rules and layer map for tests."""
+    # Save original
+    orig_rules = gov_module.LAYER_RULES.copy()
+    orig_map = gov_module.LAYER_MAP.copy()
+
+    # Set test defaults — mainstream AES architecture
+    gov_module.LAYER_RULES[:] = [
+        ("surfaces", "infrastructure", "Surfaces must not import Infrastructure directly"),
+        ("capabilities", "surfaces", "Capabilities must not import Surfaces"),
+        ("capabilities", "infrastructure", "Capabilities must not import Infrastructure"),
+    ]
+    gov_module.LAYER_MAP.update({
+        "infrastructure": "infrastructure",
+        "capabilities": "capabilities",
+        "surfaces": "surfaces",
+        "domain": "domain",
+        "agent": "agent",
+        "taxonomy": "taxonomy",
+    })
+
+    yield
+
+    # Restore original
+    gov_module.LAYER_RULES.clear()
+    gov_module.LAYER_RULES.extend(orig_rules)
+    gov_module.LAYER_MAP.clear()
+    gov_module.LAYER_MAP.update(orig_map)
+
+
 # ─── _detect_layer ────────────────────────────────────────────────────────────
 
 def test_detect_layer_infrastructure():
-    assert _detect_layer("src.infrastructure.adapters.python") == "infrastructure"
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
+    assert adapter._detect_layer("src.infrastructure.adapters.python", gov_module.LAYER_MAP) == "infrastructure"
 
 def test_detect_layer_capabilities():
-    assert _detect_layer("src.capabilities._taxonomy.models") == "capabilities"
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
+    assert adapter._detect_layer("src.capabilities._taxonomy.models", gov_module.LAYER_MAP) == "capabilities"
 
 def test_detect_layer_surfaces():
-    assert _detect_layer("src.surfaces.mcp.server") == "surfaces"
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
+    assert adapter._detect_layer("src.surfaces.mcp.server", gov_module.LAYER_MAP) == "surfaces"
 
 def test_detect_layer_agent():
-    assert _detect_layer("src.agent.dependency_injection_container") == "agent"
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
+    assert adapter._detect_layer("src.agent.dependency_injection_container", gov_module.LAYER_MAP) == "agent"
 
 def test_detect_layer_unknown():
-    assert _detect_layer("typing") is None
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
+    assert adapter._detect_layer("typing", gov_module.LAYER_MAP) is None
 
 def test_detect_layer_third_party():
-    assert _detect_layer("mcp.server.fastmcp") is None
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
+    assert adapter._detect_layer("mcp.server.fastmcp", gov_module.LAYER_MAP) is None
 
 
 # ─── _detect_file_layer ───────────────────────────────────────────────────────
 
 def test_detect_file_layer_surfaces():
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
     with tempfile.TemporaryDirectory() as root:
         filepath = os.path.join(root, "src", "surfaces", "mcp", "server.py")
-        result = _detect_file_layer(filepath, root)
+        result = adapter._detect_file_layer(filepath, root, gov_module.LAYER_MAP)
         assert result == "surfaces"
 
 def test_detect_file_layer_infrastructure():
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
     with tempfile.TemporaryDirectory() as root:
         filepath = os.path.join(root, "src", "infrastructure", "adapters", "python.py")
-        result = _detect_file_layer(filepath, root)
+        result = adapter._detect_file_layer(filepath, root, gov_module.LAYER_MAP)
         assert result == "infrastructure"
 
 def test_detect_file_layer_capabilities():
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
     with tempfile.TemporaryDirectory() as root:
         filepath = os.path.join(root, "src", "capabilities", "action.py")
-        result = _detect_file_layer(filepath, root)
+        result = adapter._detect_file_layer(filepath, root, gov_module.LAYER_MAP)
         assert result == "capabilities"
 
 def test_detect_file_layer_unknown():
+    adapter = GovernanceAdapter(layer_map=gov_module.LAYER_MAP)
     with tempfile.TemporaryDirectory() as root:
         filepath = os.path.join(root, "tests", "some_test.py")
-        result = _detect_file_layer(filepath, root)
+        result = adapter._detect_file_layer(filepath, root, gov_module.LAYER_MAP)
         assert result is None
 
 

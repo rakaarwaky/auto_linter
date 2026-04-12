@@ -7,7 +7,7 @@ logger = logging.getLogger("mcp.infrastructure.git_hooks")
 class GitHookManager:
   """Manages Git hooks for the project (Infrastructure)."""
 
-  def __init__(self, root_dir: str):
+  def __init__(self, root_dir: str = "."):
     self.root_dir = root_dir
     self.git_dir = os.path.join(root_dir, ".git")
 

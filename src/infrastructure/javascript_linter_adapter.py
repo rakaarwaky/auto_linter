@@ -5,6 +5,7 @@ import re
 import subprocess
 from typing import List
 from taxonomy.lint_result_models import ILinterAdapter, LintResult, Severity
+from infrastructure.path_normalization_util import normalize_path
 
 logger = logging.getLogger("mcp.adapters.javascript")
 
@@ -31,21 +32,10 @@ class PrettierAdapter(ILinterAdapter):
 
             if "[warn]" in combined_output:
                 # Ensure absolute path for Prettier
-                filename = path
+                filename = normalize_path(path)
                 if not os.path.isabs(filename):
                     filename = os.path.abspath(filename)
-                
-                # Normalize phantom environment paths
-                if "/home/raka/src/" in filename:
-                    alt_path = filename.replace("/home/raka/src/", "/persistent/home/raka/mcp-servers/auto_linter/src/").replace("//", "/")
-                    if os.path.exists(alt_path):
-                        filename = alt_path
-                    elif not os.path.exists(filename):
-                        suffix = filename.split("/home/raka/src/")[-1]
-                        project_file = os.path.join("/persistent/home/raka/mcp-servers/auto_linter/src/", suffix).replace("//", "/")
-                        if os.path.exists(project_file):
-                            filename = project_file
-                elif not os.path.exists(filename):
+                if not os.path.exists(filename):
                     filename = os.path.abspath(filename)
 
                 results.append(
@@ -82,8 +72,7 @@ class TSCAdapter(ILinterAdapter):
         if os.path.isfile(path) and not path.endswith((".ts", ".tsx")):
             return []
 
-        if "/home/raka/src/" in path:
-            path = path.replace("/home/raka/src/", "/persistent/home/raka/mcp-servers/auto_linter/src/").replace("//", "/")
+        path = normalize_path(path)
 
         results = []
         try:
@@ -107,18 +96,9 @@ class TSCAdapter(ILinterAdapter):
                     if not os.path.isabs(filename):
                         base_dir = os.path.dirname(os.path.abspath(path)) if os.path.isfile(path) else os.path.abspath(path)
                         filename = os.path.join(base_dir, filename)
-                    
-                    # Normalize phantom environment paths
-                    if "/home/raka/src/" in filename:
-                        alt_path = filename.replace("/home/raka/src/", "/persistent/home/raka/mcp-servers/auto_linter/src/").replace("//", "/")
-                        if os.path.exists(alt_path):
-                            filename = alt_path
-                        elif not os.path.exists(filename):
-                            suffix = filename.split("/home/raka/src/")[-1]
-                            project_file = os.path.join("/persistent/home/raka/mcp-servers/auto_linter/src/", suffix).replace("//", "/")
-                            if os.path.exists(project_file):
-                                filename = project_file
-                    elif not os.path.exists(filename):
+
+                    filename = normalize_path(filename)
+                    if not os.path.exists(filename):
                         filename = os.path.abspath(filename)
 
                     results.append(
@@ -149,8 +129,7 @@ class ESLintAdapter(ILinterAdapter):
         if os.path.isfile(path) and not path.endswith((".ts", ".tsx", ".js", ".jsx")):
             return []
 
-        if "/home/raka/src/" in path:
-            path = path.replace("/home/raka/src/", "/persistent/home/raka/mcp-servers/auto_linter/src/").replace("//", "/")
+        path = normalize_path(path)
 
         results = []
         try:
@@ -168,18 +147,9 @@ class ESLintAdapter(ILinterAdapter):
                 # Ensure absolute path
                 if not os.path.isabs(filename):
                     filename = os.path.abspath(filename)
-                
-                # Normalize phantom environment paths
-                if "/home/raka/src/" in filename:
-                    alt_path = filename.replace("/home/raka/src/", "/persistent/home/raka/mcp-servers/auto_linter/src/").replace("//", "/")
-                    if os.path.exists(alt_path):
-                        filename = alt_path
-                    elif not os.path.exists(filename):
-                        suffix = filename.split("/home/raka/src/")[-1]
-                        project_file = os.path.join("/persistent/home/raka/mcp-servers/auto_linter/src/", suffix).replace("//", "/")
-                        if os.path.exists(project_file):
-                            filename = project_file
-                elif not os.path.exists(filename):
+
+                filename = normalize_path(filename)
+                if not os.path.exists(filename):
                     filename = os.path.abspath(filename)
 
                 for msg in file_data["messages"]:

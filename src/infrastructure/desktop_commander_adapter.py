@@ -1,17 +1,18 @@
 """DesktopCommander adapter - orchestrates HTTP and Unix Socket clients.
 
 Auto-detects protocol and delegates to the appropriate client.
+Falls back to Stdio (direct subprocess) if DesktopCommander is unavailable.
 """
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 from typing import Any, Optional
 
 from infrastructure.http_request_client import HTTPClient
 from infrastructure.unix_socket_client import UnixSocketClient
+from infrastructure.stdio_transport_client import StdioClient
 
 
 def detect_protocol(url: str) -> str:
@@ -40,6 +41,7 @@ class DesktopCommanderAdapter:
         self._protocol: Optional[str] = None
         self._http_client: Optional[HTTPClient] = None
         self._unix_client: Optional[UnixSocketClient] = None
+        self._stdio_client: Optional[StdioClient] = None
         self._auto_detect = auto_detect
 
         # Always detect protocol from URL format
@@ -111,12 +113,19 @@ class DesktopCommanderAdapter:
         self._protocol = "HTTP"
         return await self._get_http_client().health_check()
 
+    def _get_stdio_client(self) -> StdioClient:
+        if self._stdio_client is None:
+            self._stdio_client = StdioClient(timeout=self.timeout)
+        return self._stdio_client
+
     async def close(self):
         """Close all client connections."""
         if self._http_client:
             await self._http_client.close()
         if self._unix_client:
             self._unix_client.close()
+        if self._stdio_client:
+            self._stdio_client.close()
 
     async def __aenter__(self):
         return self
