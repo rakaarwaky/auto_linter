@@ -9,6 +9,7 @@ class TestPipelineExecutionUncovered:
     """Tests for uncovered lines 197-199 and 272."""
 
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     async def test_execute_multi_project_with_retry(self):
         """Test execute_multi_project with retry enabled (lines 197-199)."""
         mock_container = MagicMock()

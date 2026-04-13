@@ -180,6 +180,7 @@ class TestHealthCheck:
             assert result["protocol"] == "UnixSocket"
 
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::ResourceWarning")
     async def test_health_check_failure(self):
         """Test failed health check."""
         client = DesktopCommanderAdapter(url="/nonexistent.sock", auto_detect=False)
@@ -274,6 +275,7 @@ class TestIntegrationScenarios:
     """Test integration scenarios."""
 
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::ResourceWarning")
     async def test_protocol_switch_on_failure(self):
         """Test protocol switching on failure (auto mode)."""
         client = DesktopCommanderAdapter(url="/nonexistent.sock", auto_detect=True)

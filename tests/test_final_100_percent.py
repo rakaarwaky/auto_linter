@@ -508,7 +508,9 @@ class TestCliMainEntryModuleExecution:
             mod.__name__ = "__main__"
             try:
                 # Re-execute the module's top-level code
-                exec(compile(open(mod.__file__).read(), mod.__file__, 'exec'),
+                with open(mod.__file__) as _f:
+                    _src = _f.read()
+                exec(compile(_src, mod.__file__, 'exec'),
                      mod.__dict__)
             except SystemExit:
                 pass

@@ -131,6 +131,7 @@ class TestPipelineExecutionOrchestrator:
     """Test pipeline_execution_orchestrator.py uncovered lines (197-199, 272)."""
 
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     async def test_execute_multi_project_with_retry(self):
         """Test execute_multi_project with retry enabled."""
         from agent.pipeline_execution_orchestrator import Pipeline

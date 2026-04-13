@@ -15,3 +15,6 @@ dist/
 build/
 .env
 src/auto_linter.egg-info
+.coverage
+.coverage.*
+.auto_lint_history

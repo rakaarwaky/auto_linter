@@ -140,7 +140,7 @@ def report(path, output_format):
 @cli.command()
 def version():
   """Show version information."""
-  click.echo("Auto-Linter v1.0.0 (AES Semantic Builder)")
+  click.echo("Auto-Linter v1.5.0 (AES Semantic Builder)")
 
 
 @cli.command()

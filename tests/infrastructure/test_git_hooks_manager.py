@@ -47,7 +47,8 @@ class TestGitHookManager:
             mgr = GitHookManager(root_dir=tmpdir)
             assert mgr.install_pre_commit(executable_path="custom-lint") is True
             hook_path = os.path.join(git_dir, "hooks", "pre-commit")
-            content = open(hook_path).read()
+            with open(hook_path) as f:
+                content = f.read()
             assert "custom-lint" in content
 
     def test_uninstall_pre_commit_in_git_repo(self):

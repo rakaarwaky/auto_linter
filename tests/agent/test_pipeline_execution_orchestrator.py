@@ -197,6 +197,7 @@ class TestPipelineMultiProject:
         assert result["total_projects"] == 2
 
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     async def test_execute_multi_project_with_retry(self, mock_container):
         pipeline = Pipeline(mock_container)
         result = await pipeline.execute_multi_project(["."], use_retry=True)

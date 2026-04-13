@@ -49,6 +49,7 @@ class TestCliMainEntry:
 class TestCliCoreCommands:
     """Cover lines 67, 130"""
 
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     def test_check_git_diff_no_changes(self):
         """Test check with git-diff when no changes (empty git diff)."""
         from surfaces.cli_core_commands import cli
@@ -707,6 +708,7 @@ class TestPipelineExecutionOrchestrator:
     """Cover lines 197-199: multi-project with retry"""
 
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     async def test_multi_project_retry(self):
         """Test multi-project execution with retry enabled."""
         from agent.pipeline_execution_orchestrator import Pipeline

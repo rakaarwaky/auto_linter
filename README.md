@@ -7,14 +7,19 @@
 [![MCP Server](https://img.shields.io/badge/MCP-Server-blue.svg)](https://modelcontextprotocol.io/)
 [![AI Agent Ready](https://img.shields.io/badge/AI%20Agent-Ready-green.svg)](tests/)
 
-> Autonomous code quality. Built for AI agents that code 24/7.
+> # Autonomous code quality. Built for AI agents that code 24/7.
 
-**For AI Agents:**
+## 🤖 AI Agent Benefits
 
-- Autonomous quality checks (no human needed)
-- Self-healing code (auto-fix issues)
-- Multi-agent coordination (shared job registry)
-- 24/7 architectural enforcement
+> In AI Era, no one manually codes anymore. Your AI agent does the work.
+
+| Benefit                      | Description                                              |
+| ---------------------------- | -------------------------------------------------------- |
+| **Autonomous Linting** | Agent runs lint check without human intervention         |
+| **Self-Healing Code**  | Agent auto-fixes issues automatically                    |
+| **Multi-Agent Collab** | 24/7 multi agents can coordinate via shared job registry |
+| **Continuous Quality** | Agent enforces quality gates 24/7                        |
+| **Context-Aware**      | Agent understands architectural rules                    |
 
 ## Choose Your Path
 
@@ -46,23 +51,6 @@
 | **Auto-Fix**       | Safe fixes applied automatically                            |
 | **Quality Trends** | Track code quality over time                                |
 
-### The Cost of NOT Using Auto Linter
-
-```
-0┌─────────────────────────────────────────────────────────────────┐
-│ What you're losing right now:                                     │
-├─────────────────────────────────────────────────────────────────┤
-│ ❌ 10+ hours/week manually running separate linters           │
-│ ❌ Code quality debt silently accumulating                   │
-│ ❌ Architectural violations that cost $10K+ to fix later      │
-│ ❌ Inconsistent code across team members                      │
-│ ❌ Failed CI/CD pipelines due to preventable issues           │
-│ ❌ Security vulnerabilities shipped to production           │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Join 500+ teams** who fixed their quality debt with auto_linter.
-
 ### For Contributors
 
 | Benefit                       | Description                                    |
@@ -72,31 +60,6 @@
 | **Governance Built-In** | Linting governance adapter prevents violations |
 | **Clear Paths**         | Documented guides for adapters, CLI, MCP       |
 | **Active Project**      | Regular updates, responsive maintainer         |
-
-### Social Proof
-
-| Who's Using It                                                 |
-| -------------------------------------------------------------- |
-| ✅**GitHub stars** — trusted by developers worldwide    |
-| ✅**100% test coverage** — production-ready reliability |
-| ✅**Zero critical bugs** — proven stability             |
-| ✅**Active community** — PRs merged this year           |
-
----
-
-## 🤖 AI Agent Benefits
-
-> In AI Era, no one manually codes anymore. Your AI agent does the work.
-
-| Benefit                      | Description                                      |
-| ---------------------------- | ------------------------------------------------ |
-| **Autonomous Linting**   | Agent runs lint check without human intervention |
-| **Self-Healing Code**    | Agent auto-fixes issues automatically            |
-| **Multi-Agent Collab**   | 2+ agents can coordinate via shared job registry |
-| **Continuous Quality**   | Agent enforces quality gates 24/7                |
-| **Context-Aware**        | Agent understands architectural rules            |
-
----
 
 ## Install
 

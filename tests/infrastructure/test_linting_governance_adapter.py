@@ -25,6 +25,7 @@ class TestExtractImports:
             assert "os" in modules
             assert "sys" in modules
         finally:
+            f.close()
             os.remove(f.name)
 
     def test_from_import(self):
@@ -37,6 +38,7 @@ class TestExtractImports:
             assert "os.path" in modules
             assert "typing" in modules
         finally:
+            f.close()
             os.remove(f.name)
 
     def test_line_numbers(self):
@@ -49,6 +51,7 @@ class TestExtractImports:
                 if module == "os":
                     assert line_no == 2
         finally:
+            f.close()
             os.remove(f.name)
 
     def test_nonexistent_file(self):
@@ -63,6 +66,7 @@ class TestExtractImports:
             result = _extract_imports(f.name)
             assert result == []
         finally:
+            f.close()
             os.remove(f.name)
 
     def test_no_imports(self):
@@ -73,6 +77,7 @@ class TestExtractImports:
             result = _extract_imports(f.name)
             assert result == []
         finally:
+            f.close()
             os.remove(f.name)
 
 

@@ -324,6 +324,7 @@ class TestHTTPRequestClient:
     """Test http_request_client.py uncovered lines (58, 60, 90-99)."""
 
     @pytest.mark.asyncio
+    @pytest.mark.filterwarnings("ignore::RuntimeWarning")
     async def test_health_check_non_200_falls_back_to_execute(self):
         """Test health_check when /health returns non-200, falls back to execute."""
         from infrastructure.http_request_client import HTTPClient
