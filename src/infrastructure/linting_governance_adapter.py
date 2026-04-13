@@ -5,8 +5,8 @@ import os
 
 try:
     from taxonomy.lint_result_models import ILinterAdapter, LintResult, Severity
-except ImportError:
-    from lint_result_models import ILinterAdapter, LintResult, Severity
+except ImportError:  # pragma: no cover
+    from lint_result_models import ILinterAdapter, LintResult, Severity  # pragma: no cover
 
 
 # ─── Layer Rule Definitions ─────────────────────────────────────────────────

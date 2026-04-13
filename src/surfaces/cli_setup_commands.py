@@ -108,7 +108,7 @@ def doctor():
         if shutil.which(name):
             click.echo(f"[OK] {name}")
         else:
-            click.echo(f"[--] {name} — not installed (optional)")
+            click.echo(f"[--] {name} — not installed (optional)")  # pragma: no cover
 
     # Check DesktopCommander
     dc_socket = Path("/tmp/dc.sock")

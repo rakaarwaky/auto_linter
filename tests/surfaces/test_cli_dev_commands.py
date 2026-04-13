@@ -102,12 +102,11 @@ class TestSuggestCommand:
     def test_suggest_basic(self, runner, cli_group, tmp_path):
         f = tmp_path / "test.py"
         f.write_text("x = 1\n")
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
-            container = MagicMock()
-            mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
-            container.analysis_use_case.to_dict.return_value = {"score": 75.0}
-            mock_gc.return_value = container
+        mock_container = MagicMock()
+        mock_report = MagicMock()
+        mock_container.analysis_use_case.execute = AsyncMock(return_value=mock_report)
+        mock_container.analysis_use_case.to_dict.return_value = {"score": 75.0}
+        with patch("surfaces.cli_dev_commands.get_container", return_value=mock_container):
             result = runner.invoke(cli_group, ["suggest", str(f)])
         assert result.exit_code == 0
         assert "Suggestions" in result.output
@@ -116,40 +115,39 @@ class TestSuggestCommand:
         """Test suggest with --ai flag (lines 61-63)."""
         f = tmp_path / "test.py"
         f.write_text("x = 1\n")
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
-            container = MagicMock()
-            mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
-            container.analysis_use_case.to_dict.return_value = {"score": 75.0}
-            mock_gc.return_value = container
+        mock_container = MagicMock()
+        mock_report = MagicMock()
+        mock_container.analysis_use_case.execute = AsyncMock(return_value=mock_report)
+        mock_container.analysis_use_case.to_dict.return_value = {"score": 75.0}
+        with patch("surfaces.cli_dev_commands.get_container", return_value=mock_container):
             result = runner.invoke(cli_group, ["suggest", str(f), "--ai"])
         assert result.exit_code == 0
+        assert "Governance score is 75.0" in result.output
         assert "AI suggestions" in result.output
 
     def test_suggest_with_ai_perfect_score(self, runner, cli_group, tmp_path):
         """Test suggest with --ai flag and perfect score (lines 61-63)."""
         f = tmp_path / "test.py"
         f.write_text("x = 1\n")
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
-            container = MagicMock()
-            mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
-            container.analysis_use_case.to_dict.return_value = {"score": 100.0}
-            mock_gc.return_value = container
+        mock_container = MagicMock()
+        mock_report = MagicMock()
+        mock_container.analysis_use_case.execute = AsyncMock(return_value=mock_report)
+        mock_container.analysis_use_case.to_dict.return_value = {"score": 100.0}
+        with patch("surfaces.cli_dev_commands.get_container", return_value=mock_container):
             result = runner.invoke(cli_group, ["suggest", str(f), "--ai"])
         assert result.exit_code == 0
         assert "100.0" in result.output
+        assert "AI suggestions" in result.output
 
     def test_suggest_perfect_score(self, runner, cli_group, tmp_path):
         """Test suggest when score is 100."""
         f = tmp_path / "test.py"
         f.write_text("x = 1\n")
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
-            container = MagicMock()
-            mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
-            container.analysis_use_case.to_dict.return_value = {"score": 100.0}
-            mock_gc.return_value = container
+        mock_container = MagicMock()
+        mock_report = MagicMock()
+        mock_container.analysis_use_case.execute = AsyncMock(return_value=mock_report)
+        mock_container.analysis_use_case.to_dict.return_value = {"score": 100.0}
+        with patch("surfaces.cli_dev_commands.get_container", return_value=mock_container):
             result = runner.invoke(cli_group, ["suggest", str(f)])
         assert result.exit_code == 0
         assert "100.0" in result.output

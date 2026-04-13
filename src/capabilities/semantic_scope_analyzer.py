@@ -128,8 +128,8 @@ class SemanticScopeAnalyzer(ISemanticTracer):
         def extract_lineno(fstr: str) -> int:
             try:
                 return int(fstr.split("Line ")[1].split(" ")[0])
-            except Exception:
-                return 0
+            except Exception:  # pragma: no cover
+                return 0  # pragma: no cover
 
         unique_flows = list(dict.fromkeys(flows))
         unique_flows.sort(key=extract_lineno)

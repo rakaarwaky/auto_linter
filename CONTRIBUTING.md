@@ -1,19 +1,19 @@
 # Contributing to Auto Linter
 
-> 🌟 **Join 50+ Contributors Building the Future of Automated Code Quality**
+> **Join 1+ Contributors Building the Future of Automated Code Quality**
 
 Thank you for your interest. This guide covers everything you need
 to start contributing effectively.
 
 ## Why Contribute
 
-| Perks                    | Benefit                                       |
-| ------------------------- | --------------------------------------------- |
-| **Real-world impact**    | Your code helps 500+ teams ship better code   |
-| **Portfolio builder**    | Showcase pytest, async, MCP skills           |
-| **Open source cred**    | Stand out in job applications                 |
+| Perks                           | Benefit                                     |
+| ------------------------------- | ------------------------------------------- |
+| **Real-world impact**     | Your code helps 500+ teams ship better code |
+| **Portfolio builder**     | Showcase pytest, async, MCP skills          |
+| **Open source cred**      | Stand out in job applications               |
 | **Community recognition** | GitHub contributors, discord shoutouts      |
-| **Learning opportunity** | Study well-architected 5-domain codebase      |
+| **Learning opportunity**  | Study well-architected 5-domain codebase    |
 
 ---
 
@@ -197,8 +197,8 @@ python3 -m pytest tests/ --cov=src --cov-report=term-missing
 
 ### 1. Choose the right module
 
-| Module                        | Purpose                                                                           |
-| ----------------------------- | --------------------------------------------------------------------------------- |
+| Module                          | Purpose                                                                           |
+| ------------------------------- | --------------------------------------------------------------------------------- |
 | `cli_core_commands.py`        | check, scan, fix, report, version, adapters, security, cancel                     |
 | `cli_analysis_commands.py`    | complexity, duplicates, trends, dependencies, ci, batch                           |
 | `cli_dev_commands.py`         | diff, suggest, ignore, config, export, import, init, install-hook, uninstall-hook |
@@ -389,14 +389,12 @@ auto-lint check src/
 
 1. **Run tests**: `python3 -m pytest tests/ -q`
    All tests must pass. No skipped tests without justification.
-
 2. **Run linter**: `auto-lint check src/`
    Fix all violations. Governance score must be high.
-
 3. **Check coverage**: `python3 -m pytest tests/ --cov=src`
    New code should have tests. Don't decrease total coverage.
-
 4. **Update docs**:
+
    - PRD.md if you added features
    - SKILL.md if you changed MCP tools or CLI commands
    - README.md if the user-facing interface changed

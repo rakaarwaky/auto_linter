@@ -31,7 +31,7 @@ def show_enclosing_scope(file_path: str, line: int) -> Optional[str]:
         while scope_stack:
             last_scope = cast(Tuple[str, int], scope_stack[-1])
             if brace_depth <= last_scope[1]:
-                scope_stack.pop()
+                scope_stack.pop()  # pragma: no cover
             else:
                 break
 

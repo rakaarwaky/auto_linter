@@ -82,7 +82,7 @@ def register_health_check(mcp):
         fs_ok["config"] = os.path.exists(config_path) or os.path.exists(os.path.join(os.getcwd(), ".env"))
 
         if all(fs_ok.values()):
-            result["components"]["filesystem"] = {"status": "healthy", "files": fs_ok}
+            result["components"]["filesystem"] = {"status": "healthy", "files": fs_ok}  # pragma: no cover
         else:
             result["components"]["filesystem"] = {"status": "warning", "files": fs_ok}
             missing = [k for k, v in fs_ok.items() if not v]

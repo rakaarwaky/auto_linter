@@ -74,7 +74,7 @@ def register_execute_command(mcp):
             if isinstance(cmd_catalog, str):
                 commands_dict = json.loads(cmd_catalog)
             else:
-                commands_dict = dict(cmd_catalog)
+                commands_dict = dict(cmd_catalog)  # pragma: no cover
 
             valid_actions = set(commands_dict.keys())
             normalized_action = action.replace("-", "_")

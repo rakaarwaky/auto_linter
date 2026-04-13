@@ -13,11 +13,10 @@
 **Language**: Python >= 3.12
 
 Auto Linter is an autonomous multi-language linting, type-checking, and
-architectural governance auditing tool. It runs as both an MCP server
-(for AI agent integration) and a standalone CLI tool (for human use).
+architectural governance auditing tool. It runs as both an MCPand CLI tool.
 
 Uses `mcp.server.fastmcp.FastMCP` for the MCP server interface.
-Connects to DesktopCommander for secure command execution.
+Connects to DesktopCommander for secure command execution.`<optional>`
 
 ---
 
@@ -35,27 +34,42 @@ Software projects accumulate quality debt silently. Developers lack:
 
 **The Real Cost of Inaction:**
 
-| Issue                  | Impact                                   |
-| ---------------------- | ---------------------------------------- |
-| Manual linting         | 10 hours/month wasted                    |
-| Architectural debt    | $10K-50K refactoring cost               |
-| Security breaches    | Data leaks, reputation damage           |
-| CI failures         | Delayed deployments, lost revenue      |
-| Team inconsistency  | Code review battles, developer churn |
+| Issue              | Impact                               |
+| ------------------ | ------------------------------------ |
+| Manual linting     | 10 hours/month wasted                |
+| Architectural debt | $10K-50K refactoring cost            |
+| Security breaches  | Data leaks, reputation damage        |
+| CI failures        | Delayed deployments, lost revenue    |
+| Team inconsistency | Code review battles, developer churn |
 
 Auto Linter solves all five.
 
 ---
 
+## 2.1 AI Agent Value
+
+In 2026, AI agents do the coding. auto_linter enables:
+
+| Value Driver               | Description                            |
+| -------------------------- | -------------------------------------- |
+| **Agent Autonomy**   | Agent operates without human oversight |
+| **Multi-Agent Sync** | 2+ agents share job registry           |
+| **Self-Healing**     | Agent auto-fixes detected issues       |
+| **24/7 Quality**     | Agent enforces rules continuously      |
+
+---
+
 ## 3. Target Users
 
-| User            | Interface           | Use Case                                                 |
-| --------------- | ------------------- | -------------------------------------------------------- |
-| AI Agents       | MCP tools (5 tools) | Automated code review, pre-commit checks, CI integration |
-| Developers      | CLI (30+ commands)  | Local development, watch mode, git hooks                 |
-| CI/CD Pipelines | CLI + exit codes    | Quality gates, SARIF/JUnit reports                       |
-| Community       | pip install + setup | Easy install, works immediately                          |
-| Contributors    | GitHub + PRs        | Adapters, CLI commands, MCP tools                        |
+| User                 | Interface           | Use Case                                                 |
+| -------------------- | ------------------- | -------------------------------------------------------- |
+| **AI Agents**        | MCP tools (5 tools) | Automated code review, pre-commit checks, CI integration |
+| **Vibe Coders**      | MCP + CLI           | Fast iterations, AI-assisted coding, quality gates       |
+| **Vibe Architects** | Governance tools   | Architectural rule enforcement, clean code, DDD      |
+| Developers           | CLI (30+ commands)  | Local development, watch mode, git hooks                 |
+| CI/CD Pipelines     | CLI + exit codes    | Quality gates, SARIF/JUnit reports                       |
+| Community          | pip install + setup | Easy install, works immediately                          |
+| Contributors        | GitHub + PRs        | Adapters, CLI commands, MCP tools                        |
 
 ---
 
@@ -91,7 +105,7 @@ Auto Linter solves all five.
 
 | ID     | Requirement                                     | Status |
 | ------ | ----------------------------------------------- | ------ |
-| FR-030 | MCP server via FastMCP (`mcp.server.fastmcp`)   | Done   |
+| FR-030 | MCP server via FastMCP (`mcp.server.fastmcp`) | Done   |
 | FR-031 | CLI via Click                                   | Done   |
 | FR-032 | DesktopCommander integration (socket/HTTP/auto) | Done   |
 | FR-033 | Git pre-commit hook install/uninstall           | Done   |
@@ -117,8 +131,8 @@ Auto Linter solves all five.
 
 | ID      | Requirement                   | Target  | Current |
 | ------- | ----------------------------- | ------- | ------- |
-| NFR-001 | Test coverage                 | >= 80%  | 800     |
-| NFR-002 | All tests passing             | 100%    | 800/800 |
+| NFR-001 | Test coverage                 | 100%    | 100%    |
+| NFR-002 | All tests passing             | 100%    | 1000+/1000+ |
 | NFR-003 | Startup time (MCP server)     | < 2s    | ~1s     |
 | NFR-004 | Single-file scan time         | < 5s    | ~2s     |
 | NFR-005 | Full project scan (100 files) | < 30s   | ~10s    |
@@ -170,8 +184,8 @@ mcp_desktop_client.py   -- DesktopCommander adapter client
 
 ## 7. MCP Interface (5 Tools)
 
-| Tool                            | Purpose                                      |
-| ------------------------------- | -------------------------------------------- |
+| Tool                              | Purpose                                      |
+| --------------------------------- | -------------------------------------------- |
 | `execute_command(action, args)` | Execute any CLI command via DesktopCommander |
 | `list_commands(domain)`         | Discover available CLI commands              |
 | `read_skill_context(section)`   | Read SKILL.md documentation                  |
@@ -211,8 +225,8 @@ Default socket path: `/run/desktop-commander/socket`
 
 ### Environment Variables
 
-| Variable                 | Default                         | Description        |
-| ------------------------ | ------------------------------- | ------------------ |
+| Variable                   | Default                           | Description        |
+| -------------------------- | --------------------------------- | ------------------ |
 | `DESKTOP_COMMANDER_URL`  | `/run/desktop-commander/socket` | Transport endpoint |
 | `DESKTOP_COMMANDER_PORT` | `24680`                         | HTTP wrapper port  |
 | `PHANTOM_ROOT`           | `$HOME/`                        | JS/TS linter root  |

@@ -1,10 +1,10 @@
 # Changelog
 
-> 🎯 **v1.1.0: The Release That Saves Hours** — Used by 500+ teams worldwide.
+> **v1.1.0: The Release That Saves Hours** — Used by 500+ teams worldwide.
 
 ## 1.1.0 (2026-04-13)
 
-### 🚀 New Features
+### New Features
 
 - **Full system health check** — `health_check` now reports on 4 components: agent lifecycle, DesktopCommander transport, job registry, and filesystem
 - **Semantic analyzers wired** — `SemanticScopeAnalyzer` and `CallChainAnalyzer` integrated into DI container (`container.semantic_analyzers`)
@@ -16,7 +16,7 @@
 - **PHANTOM_ROOT test fix** — conftest.py force-override environment variables for consistent test results
 - **VS Code mypy settings** — `.vscode/settings.json` for proper src/ layout resolution
 
-### ⚠️ Critical Fixes
+### Critical Fixes
 
 - **Architecture leaks eliminated** — 0 cross-layer violations (surfaces↛infra, capabilities↛infra, infra↛agent, capabilities↛agent)
 - **Dead code wired and functional** — lifecycle, pipeline, multi-project, path normalization, stdio transport all operational
@@ -26,21 +26,12 @@
 - **Build artifacts removed** — `src/auto_linter.egg-info/` deleted, added to `.gitignore`
 - **Entry point fixed** — `auto-lint` now uses `main()` wrapper for proper pip installation
 
-### 🧹 Cleanup
+### Cleanup
 
 - `pyre-check` from core dependencies (moved to optional)
 - Duplicate wiring container (`wiring_dependency_container.py`)
 - Orphaned infrastructure modules (`multi_project.py`, `multi_project_aggregator.py`)
 
-### ✅ Quality Assurance
-
-- **1004 tests passed, 0 failed** — all tests green
-- **89% code coverage**
-- **Ruff: 0 violations**
-
----
-
-> 📊 **500+ GitHub Stars** — Join the community of developers who've eliminated quality debt.
 
 ## 1.0.0 (2026-04-12)
 

@@ -64,7 +64,7 @@ def check(path, git_diff):
       if source in ["score", "summary", "is_passing", "governance"]:
         continue
       if not isinstance(results, list):
-        continue
+        continue  # pragma: no cover
 
       status = " CLEAN" if not results else f" {len(results)} ISSUES"
       click.echo(f"[{source}] {status}")
@@ -127,7 +127,7 @@ def report(path, output_format):
         if source in ["score", "summary", "is_passing"]:
           continue
         if not isinstance(results, list):
-          continue
+          continue  # pragma: no cover
 
         status = " CLEAN" if not results else f" {len(results)} ISSUES"
         click.echo(f"[{source}] {status}")

@@ -88,7 +88,10 @@ class TestCoreCommands:
         """Test check with --git-diff when git diff fails (line 67)."""
         test_file = tmp_path / "test.py"
         test_file.write_text("x = 1\n")
-        with patch("subprocess.run", side_effect=Exception("git not found")):
+        # The check function does: import subprocess; subprocess.run(...)
+        # We patch subprocess.run globally since the local import still references the module
+        import subprocess
+        with patch.object(subprocess, "run", side_effect=Exception("git not found")):
             with patch("agent.dependency_injection_container.get_container") as mock_gc:
                 container = MagicMock()
                 mock_report = MagicMock()
@@ -101,7 +104,7 @@ class TestCoreCommands:
                 runner = CliRunner()
                 result = runner.invoke(cli, ["check", str(tmp_path), "--git-diff"])
                 assert result.exit_code in (0, 1)
-                assert "Warning" in result.output or "git diff" in result.output.lower()
+                assert "Warning" in result.output
 
     def test_scan_command(self, tmp_path):
         """Test scan command (alias for check) (line 130)."""
@@ -118,6 +121,25 @@ class TestCoreCommands:
 
             runner = CliRunner()
             result = runner.invoke(cli, ["scan", str(tmp_path)])
+            assert result.exit_code in (0, 1)
+
+    def test_report_with_non_list_results(self, tmp_path):
+        """Test report command with non-list adapter results (line 130)."""
+        test_file = tmp_path / "test.py"
+        test_file.write_text("x = 1\n")
+        with patch("agent.dependency_injection_container.get_container") as mock_gc:
+            container = MagicMock()
+            mock_report = MagicMock()
+            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
+            container.analysis_use_case.to_dict.return_value = {
+                "score": 90.0,
+                "ruff": {"not": "a list"},  # non-list, triggers line 130
+                "is_passing": True,
+            }
+            mock_gc.return_value = container
+
+            runner = CliRunner()
+            result = runner.invoke(cli, ["report", str(tmp_path)])
             assert result.exit_code in (0, 1)
 
     def test_multi_project_command(self):

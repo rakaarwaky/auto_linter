@@ -1,15 +1,21 @@
 ---
 name: auto-linter
-description: MCP server for autonomous linting and governance auditing.
+description: MCP server for autonomous linting and governance auditing - FOR AI AGENTS.
 version: 1.0.0
 ---
 # Auto Linter Skill
 
->  **The Ultimate Linting Power-Up for AI Agents** — Used by top-performing teams.
+> **This SKILL is designed FOR AI AGENTS.**
+> 
+> Humans: use CLI `auto-lint` instead.
 
-MCP server that provides autonomous, multi-language linting and architectural governance auditing. Works as standalone CLI tool and as MCP server for AI agents via FastMCP (`mcp.server.fastmcp.FastMCP`).
+MCP server for autonomous, multi-language linting and architectural governance auditing. Built specifically for AI agents to:
+- Execute quality checks autonomously
+- Auto-fix issues without human intervention  
+- Coordinate with other agents
+- Enforce architectural rules 24/7
 
-## Why AI Agents Choose auto_linter
+## Why AI Agents Use auto_linter
 
 | Feature                | Benefit for Agent                         |
 | ---------------------- | ----------------------------------------- |
