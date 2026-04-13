@@ -66,10 +66,14 @@ async def run_with_retry(
     base_delay: float = 0.5,
 ) -> Any:
     """Execute async function with exponential backoff retry."""
+    import inspect
     last_error = None
     for attempt in range(max_retries):
         try:
-            return await func()
+            result = func()
+            if inspect.isawaitable(result):
+                result = await result
+            return result
         except (ConnectionError, TimeoutError, OSError) as e:
             last_error = str(e)
             if attempt >= max_retries - 1:
@@ -80,4 +84,4 @@ async def run_with_retry(
                 wait_time, attempt + 1, max_retries, last_error,
             )
             await asyncio.sleep(wait_time)
-    raise RuntimeError(f"Unexpected retry exit: {last_error}")
+    raise RuntimeError(f"Unexpected retry exit: {last_error}")  # pragma: no cover

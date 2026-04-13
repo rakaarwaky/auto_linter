@@ -13,10 +13,10 @@
 **Language**: Python >= 3.12
 
 Auto Linter is an autonomous multi-language linting, type-checking, and
-architectural governance auditing tool. It runs as both an MCPand CLI tool.
+architectural governance auditing tool. It runs as both an MCP server and CLI tool.
 
 Uses `mcp.server.fastmcp.FastMCP` for the MCP server interface.
-Connects to DesktopCommander for secure command execution.`<optional>`
+Connects to DesktopCommander for secure command execution.
 
 ---
 
@@ -46,7 +46,7 @@ Auto Linter solves all five.
 
 ---
 
-## 2.1 AI Agent Value
+## 3. AI Agent Value
 
 In 2026, AI agents do the coding. auto_linter enables:
 
@@ -59,7 +59,7 @@ In 2026, AI agents do the coding. auto_linter enables:
 
 ---
 
-## 3. Target Users
+## 4. Target Users
 
 | User                 | Interface           | Use Case                                                 |
 | -------------------- | ------------------- | -------------------------------------------------------- |
@@ -73,9 +73,9 @@ In 2026, AI agents do the coding. auto_linter enables:
 
 ---
 
-## 4. Functional Requirements
+## 5. Functional Requirements
 
-### 4.1 Core Linting Engine
+### 5.1 Core Linting Engine
 
 | ID     | Requirement                                    | Status |
 | ------ | ---------------------------------------------- | ------ |
@@ -92,7 +92,7 @@ In 2026, AI agents do the coding. auto_linter enables:
 | FR-011 | Apply safe auto-fixes (Ruff, ESLint, Prettier) | Done   |
 | FR-012 | Architectural governance (AES layer rules)     | Done   |
 
-### 4.2 Report Formats
+### 5.2 Report Formats
 
 | ID     | Format                             | Status |
 | ------ | ---------------------------------- | ------ |
@@ -101,7 +101,7 @@ In 2026, AI agents do the coding. auto_linter enables:
 | FR-022 | SARIF 2.1.0 (GitHub Code Scanning) | Done   |
 | FR-023 | JUnit XML (Jenkins/CI)             | Done   |
 
-### 4.3 Integration
+### 5.3 Integration
 
 | ID     | Requirement                                     | Status |
 | ------ | ----------------------------------------------- | ------ |
@@ -115,7 +115,7 @@ In 2026, AI agents do the coding. auto_linter enables:
 | FR-037 | pip install + uvx support                       | Done   |
 | FR-038 | curl installer script                           | Done   |
 
-### 4.4 Semantic Analysis (Enrichment)
+### 5.4 Semantic Analysis (Enrichment)
 
 | ID     | Requirement                                            | Status |
 | ------ | ------------------------------------------------------ | ------ |
@@ -127,7 +127,7 @@ In 2026, AI agents do the coding. auto_linter enables:
 
 ---
 
-## 5. Non-Functional Requirements
+## 6. Non-Functional Requirements
 
 | ID      | Requirement                   | Target  | Current |
 | ------- | ----------------------------- | ------- | ------- |
@@ -141,9 +141,9 @@ In 2026, AI agents do the coding. auto_linter enables:
 
 ---
 
-## 6. Architecture
+## 7. Architecture
 
-### 6.1 Domain Model (5 Domains)
+### 7.1 Domain Model (5 Domains)
 
 ```
 src/
@@ -154,7 +154,7 @@ src/
   taxonomy/        -- Shared types: value objects, models, errors
 ```
 
-### 6.2 Dependency Rules
+### 7.2 Dependency Rules
 
 ```
 surfaces     -> capabilities       ALLOWED
@@ -165,7 +165,7 @@ infrastructure -> taxonomy         ALLOWED
 agent        -> *                  ALLOWED (wiring layer)
 ```
 
-### 6.3 MCP Server Architecture
+### 7.3 MCP Server Architecture
 
 Uses `mcp.server.fastmcp.FastMCP` with register-function based tool registration.
 Tool registry is split into granular modules:
@@ -182,7 +182,7 @@ mcp_desktop_client.py   -- DesktopCommander adapter client
 
 ---
 
-## 7. MCP Interface (5 Tools)
+## 8. MCP Interface (5 Tools)
 
 | Tool                              | Purpose                                      |
 | --------------------------------- | -------------------------------------------- |
@@ -196,7 +196,7 @@ mcp_desktop_client.py   -- DesktopCommander adapter client
 
 ---
 
-## 8. CLI Interface (30 Commands)
+## 9. CLI Interface (30 Commands)
 
 | Category    | Commands                                                                          |
 | ----------- | --------------------------------------------------------------------------------- |
@@ -209,7 +209,7 @@ mcp_desktop_client.py   -- DesktopCommander adapter client
 
 ---
 
-## 9. DesktopCommander Integration
+## 10. DesktopCommander Integration
 
 ### Transport Auto-Detection
 
@@ -233,7 +233,7 @@ Default socket path: `/run/desktop-commander/socket`
 
 ---
 
-## 10. Dependencies
+## 11. Dependencies
 
 | Package       | Type     | Purpose                        |
 | ------------- | -------- | ------------------------------ |
@@ -251,11 +251,11 @@ Default socket path: `/run/desktop-commander/socket`
 
 ---
 
-## 11. Constraints
+## 12. Constraints
 
 - Python only (no Go/Rust rewrite)
 - Free models only (no paid API dependencies)
 - DesktopCommander is required for MCP tool execution
 - No database required (file-based history only)
 - FastMCP for MCP server (decorator-based registration)
-- Platform Linux Windows Mac
+- Platform: Linux, Windows, Mac

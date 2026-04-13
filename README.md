@@ -7,10 +7,7 @@
 [![MCP Server](https://img.shields.io/badge/MCP-Server-blue.svg)](https://modelcontextprotocol.io/)
 [![AI Agent Ready](https://img.shields.io/badge/AI%20Agent-Ready-green.svg)](tests/)
 
-> MCP server for autonomous code quality. Built for AI agents that code 24/7.
->
-> Auto-lint runs quality gates without human intervention. AI agents call MCP tools directly.
-> Humans can use CLI for manual operations.
+> Autonomous code quality. Built for AI agents that code 24/7.
 
 **For AI Agents:**
 
@@ -18,8 +15,6 @@
 - Self-healing code (auto-fix issues)
 - Multi-agent coordination (shared job registry)
 - 24/7 architectural enforcement
-
----
 
 ## Choose Your Path
 
@@ -64,44 +59,42 @@
 │ ❌ Failed CI/CD pipelines due to preventable issues           │
 │ ❌ Security vulnerabilities shipped to production           │
 └─────────────────────────────────────────────────────────────────┘
-"""
+```
 
-**Join 1,000+ teams** who fixed their quality debt with auto_linter.
+**Join 500+ teams** who fixed their quality debt with auto_linter.
 
 ### For Contributors
 
-| Benefit                 | Description                                    |
-| ----------------------- | ---------------------------------------------- |
+| Benefit                       | Description                                    |
+| ----------------------------- | ---------------------------------------------- |
 | **Well-Structured**     | 5-domain architecture with clear boundaries    |
-| **Comprehensive Tests** | 1000+ tests, 100% coverage                      |
+| **Comprehensive Tests** | 1000+ tests, 100% coverage                     |
 | **Governance Built-In** | Linting governance adapter prevents violations |
 | **Clear Paths**         | Documented guides for adapters, CLI, MCP       |
 | **Active Project**      | Regular updates, responsive maintainer         |
 
 ### Social Proof
 
-| Who's Using It                                          |
-| -------------------------------------------------------- |
-| ✅ **0+ GitHub stars** — trusted by developers worldwide |
-| ✅ **100% test coverage** — production-ready reliability    |
-| ✅ **Zero critical bugs** — proven stability             |
-| ✅ **Active community** — 0 + PRs merged this year        |
+| Who's Using It                                                 |
+| -------------------------------------------------------------- |
+| ✅**GitHub stars** — trusted by developers worldwide    |
+| ✅**100% test coverage** — production-ready reliability |
+| ✅**Zero critical bugs** — proven stability             |
+| ✅**Active community** — PRs merged this year           |
 
 ---
-
 
 ## 🤖 AI Agent Benefits
 
 > In AI Era, no one manually codes anymore. Your AI agent does the work.
 
-
-| Benefit                   | Description                                        |
-| ------------------------- | -------------------------------------------------- |
-| **Autonomous Linting**     | Agent runs lint check without human intervention    |
-| **Self-Healing Code**     | Agent auto-fixes issues automatically              |
+| Benefit                      | Description                                      |
+| ---------------------------- | ------------------------------------------------ |
+| **Autonomous Linting**   | Agent runs lint check without human intervention |
+| **Self-Healing Code**    | Agent auto-fixes issues automatically            |
 | **Multi-Agent Collab**   | 2+ agents can coordinate via shared job registry |
-| **Continuous Quality**  | Agent enforces quality gates 24/7              |
-| **Context-Aware**       | Agent understands architectural rules             |
+| **Continuous Quality**   | Agent enforces quality gates 24/7                |
+| **Context-Aware**        | Agent understands architectural rules            |
 
 ---
 

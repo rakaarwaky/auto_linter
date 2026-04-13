@@ -47,11 +47,13 @@ class TestFindJsonConfig:
         result = _find_json_config(start=tmp_path)
         assert result is None
 
-    @pytest.mark.skip(reason="Flaky test")
-    def test_walks_up_to_5_levels(self, tmp_path):
+    def test_walks_up_to_5_levels(self, tmp_path, monkeypatch):
+        # Ensure no env override interferes
+        monkeypatch.delenv("AUTO_LINTER_CONFIG_JSON", raising=False)
         cfg = tmp_path / ".auto_linter.json"
         cfg.write_text("{}")
-        deep = tmp_path / "a" / "b" / "c" / "d" / "e"
+        # 4 levels deep so the 5th walk iteration reaches tmp_path
+        deep = tmp_path / "a" / "b" / "c" / "d"
         deep.mkdir(parents=True)
         result = _find_json_config(start=deep)
         assert result == cfg

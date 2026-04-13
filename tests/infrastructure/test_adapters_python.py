@@ -4,12 +4,10 @@ from unittest.mock import MagicMock, patch
 from infrastructure import RuffAdapter, MyPyAdapter
 from taxonomy.lint_result_models import Severity
 
-
 # ========== RuffAdapter ==========
 
 def test_ruff_adapter_name():
     assert RuffAdapter().name() == "ruff"
-
 
 def test_ruff_adapter_scan_json_error_after_bracket():
     adapter = RuffAdapter()
@@ -18,7 +16,6 @@ def test_ruff_adapter_scan_json_error_after_bracket():
         results = adapter.scan("test.py")
         assert results == []
 
-
 def test_ruff_adapter_scan_empty_stdout():
     adapter = RuffAdapter()
     with patch("subprocess.run") as mock_run:
@@ -26,24 +23,9 @@ def test_ruff_adapter_scan_empty_stdout():
         results = adapter.scan("test.py")
         assert results == []
 
-
 def test_ruff_adapter_scan_non_python_file():
     with patch("os.path.isfile", return_value=True):
         assert RuffAdapter().scan("test.txt") == []
-
-
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_ruff_adapter_scan_phantom_path_replace():
-    """When path contains /home/raka/src/, it should be replaced before scanning."""
-    adapter = RuffAdapter()
-    with patch("subprocess.run") as mock_run, \
-         patch("os.path.abspath", side_effect=lambda x: x), \
-         patch("os.path.exists", return_value=False), \
-         patch("os.path.isfile", return_value=False):
-        mock_run.return_value = MagicMock(stdout="", stderr="")
-        results = adapter.scan("/home/raka/src/myfile.py")
-        assert results == []
-
 
 @patch("subprocess.run")
 @patch("os.path.abspath")
@@ -82,7 +64,6 @@ def test_ruff_adapter_scan_success(mock_exists, mock_abs, mock_run):
     assert results[1].severity == Severity.LOW    # W291
     assert results[2].severity == Severity.HIGH   # F401
 
-
 @patch("subprocess.run")
 @patch("os.path.abspath", side_effect=lambda x: x)
 @patch("os.path.isfile", return_value=False)
@@ -90,7 +71,6 @@ def test_ruff_adapter_empty_stdout(mock_isfile, mock_abs, mock_run):
     mock_run.return_value = MagicMock(stdout="", stderr="")
     results = RuffAdapter().scan("some/dir")
     assert results == []
-
 
 @patch("subprocess.run")
 @patch("os.path.abspath", side_effect=lambda x: x)
@@ -101,34 +81,11 @@ def test_ruff_adapter_json_decode_error(mock_isfile, mock_abs, mock_run):
     results = RuffAdapter().scan("some/dir")
     assert results == []
 
-
 @patch("subprocess.run", side_effect=FileNotFoundError)
 def test_ruff_adapter_file_not_found(mock_run):
     """Should return [] gracefully when ruff binary is missing."""
     results = RuffAdapter().scan("test.py")
     assert results == []
-
-
-@patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_ruff_adapter_scan_phantom_e902_filtering(mock_run):
-    """E902 errors with phantom /home/raka/src/ paths should be filtered."""
-    ruff_output = json.dumps([
-        {
-            "filename": "/home/raka/src/test.py",
-            "location": {"row": 1, "column": 1},
-            "code": "E902",
-            "message": "File not found"
-        }
-    ])
-    ruff_stdout = "No such file or directory\n" + ruff_output
-    mock_run.return_value = MagicMock(stdout=ruff_stdout, stderr="")
-
-    with patch("os.path.exists", side_effect=lambda x: "/persistent/" in x):
-        adapter = RuffAdapter()
-        results = adapter.scan("/home/raka/src/test.py")
-        assert results == []
-
 
 @patch("subprocess.run")
 def test_ruff_adapter_scan_e902_real_file_missing(mock_run):
@@ -147,7 +104,6 @@ def test_ruff_adapter_scan_e902_real_file_missing(mock_run):
     with patch("os.path.exists", return_value=False):
         results = RuffAdapter().scan("some/path")
         assert results == []
-
 
 @patch("subprocess.run")
 def test_ruff_adapter_scan_e902_mixed_real_errors(mock_run):
@@ -179,131 +135,14 @@ def test_ruff_adapter_scan_e902_mixed_real_errors(mock_run):
         assert len(results) == 1
         assert results[0].code == "E501"
 
-
-@patch("subprocess.run")
-@patch("os.path.abspath", side_effect=lambda x: x)
-@patch("os.path.isabs", return_value=True)
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_ruff_adapter_scan_e902_phantom_exists(mock_isabs, mock_abs, mock_run):
-    """If phantom path ACTUALLY exists, it's still filtered ( false positive in this environment)."""
-    ruff_output = json.dumps([
-        {"filename": "/home/raka/src/test.py", "location": {"row": 1, "column": 1}, "code": "E902", "message": "Err"}
-    ])
-    mock_run.return_value = MagicMock(stdout="No such file or directory\nE902\n" + ruff_output, stderr="")
-    
-    with patch("os.path.exists", return_value=True):
-        results = RuffAdapter().scan("/home/raka/src/")
-        assert len(results) == 0
-
-
-@patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_ruff_adapter_scan_e902_non_phantom_not_exists(mock_run):
-    """E902 for non-phantom file that doesn't exist should be filtered."""
-    ruff_output = json.dumps([
-        {"filename": "/other/test.py", "location": {"row": 1, "column": 1}, "code": "E902", "message": "Err"}
-    ])
-    mock_run.return_value = MagicMock(stdout="No such file or directory\nE902\n" + ruff_output, stderr="")
-    
-    with patch("os.path.exists", return_value=False), \
-         patch("os.path.abspath", side_effect=lambda x: x), \
-         patch("os.path.isabs", return_value=True):
-        results = RuffAdapter().scan("/abs/")
-        assert len(results) == 0
-
-
-
-@patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_ruff_adapter_scan_phantom_no_exists_fallback(mock_run):
-    """Case where phantom file doesn't exist anywhere (emergency fallback split)."""
-    ruff_output = json.dumps([
-        {"filename": "/home/raka/src/gone.py", "location": {"row": 1, "column": 1}, "code": "E501", "message": "Err"}
-    ])
-    mock_run.return_value = MagicMock(stdout=ruff_output, stderr="")
-    
-    with patch("os.path.exists", return_value=False), \
-         patch("os.path.isabs", return_value=True), \
-         patch("os.path.abspath", side_effect=lambda x: x), \
-         patch("os.path.isfile", return_value=False):
-        results = RuffAdapter().scan("/any/dir")
-        assert len(results) == 1
-        # It'll just use the original suffix joined to project path if suffix exists
-        assert "/persistent/" in results[0].file
-
-
-@patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_mypy_adapter_phantom_fallbacks(mock_run):
-    """Test MyPy phantom path fallbacks (lines 161-167)."""
-    mock_run.return_value = MagicMock(stdout="/home/raka/src/app.py:5:1: error: Err", stderr="")
-    
-    # Branch 1: alt_path exists
-    with patch("os.path.exists", side_effect=lambda x: "/persistent/" in x), \
-         patch("os.path.isabs", return_value=True), \
-         patch("os.path.abspath", side_effect=lambda x: x):
-        results = MyPyAdapter().scan("/any/dir")
-        assert len(results) == 1
-        assert "/persistent/" in results[0].file
-
-    # Branch 2: alt_path does NOT exist, but project_file DOES
-    def exists_side(x):
-        return x == "/persistent/home/raka/mcp-servers/auto_linter/src/app.py"
-    
-    with patch("os.path.exists", side_effect=exists_side), \
-         patch("os.path.isabs", return_value=True), \
-         patch("os.path.abspath", side_effect=lambda x: x):
-        results = MyPyAdapter().scan("/any/dir")
-        assert len(results) == 1
-        assert "/persistent/" in results[0].file
-
-
-
-@patch("subprocess.run")
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_ruff_adapter_scan_phantom_filename_in_result(mock_run):
-    """Phantom path /home/raka/src/ in result filenames gets replaced to /persistent/ path."""
-    ruff_output = json.dumps([
-        {
-            "filename": "/home/raka/src/app.py",
-            "location": {"row": 10, "column": 1},
-            "code": "E501",
-            "message": "Line too long"
-        }
-    ])
-    mock_run.return_value = MagicMock(stdout=ruff_output, stderr="")
-
-    with patch("os.path.exists", side_effect=lambda x: "/persistent/" in x), \
-         patch("os.path.isabs", return_value=True), \
-         patch("os.path.abspath", side_effect=lambda x: x), \
-         patch("os.path.isfile", return_value=False):
-        results = RuffAdapter().scan("/any/dir")
-        assert len(results) == 1
-        assert "/persistent/" in results[0].file
-
-
 # ========== MyPyAdapter ==========
 
 def test_mypy_adapter_name():
     assert MyPyAdapter().name() == "mypy"
 
-
 def test_mypy_adapter_scan_non_python_file():
     with patch("os.path.isfile", return_value=True):
         assert MyPyAdapter().scan("test.txt") == []
-
-
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_mypy_adapter_scan_phantom_path():
-    """When path contains /home/raka/src/ it should be replaced."""
-    adapter = MyPyAdapter()
-    with patch("subprocess.run") as mock_run, \
-         patch("os.path.abspath", side_effect=lambda x: x), \
-         patch("os.path.exists", return_value=False):
-        mock_run.return_value = MagicMock(stdout="", stderr="")
-        results = adapter.scan("/home/raka/src/myfile.py")
-        assert results == []
-
 
 @patch("subprocess.run")
 @patch("os.path.exists")
@@ -322,13 +161,11 @@ def test_mypy_adapter_scan_success(mock_exists, mock_run):
     assert results[1].line == 20
     assert results[2].severity == Severity.MEDIUM  # warning
 
-
 @patch("subprocess.run", side_effect=FileNotFoundError)
 def test_mypy_adapter_file_not_found(mock_run):
     """Should return [] gracefully when mypy binary is missing."""
     results = MyPyAdapter().scan("test.py")
     assert results == []
-
 
 @patch("subprocess.run")
 @patch("os.path.isfile", return_value=False)
@@ -337,22 +174,6 @@ def test_mypy_adapter_empty_output(mock_isfile, mock_run):
     adapter = MyPyAdapter()
     results = adapter.scan("/some/dir")
     assert results == []
-
-
-@patch("subprocess.run")
-@patch("os.path.exists", side_effect=lambda x: "/persistent/" in x)
-@patch("os.path.isabs", return_value=True)
-@patch("os.path.abspath", side_effect=lambda x: x)
-@patch("os.path.isfile", return_value=False)
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_mypy_adapter_phantom_filename_replacement(mock_isfile, mock_abs, mock_isabs, mock_exists, mock_run):
-    """Phantom paths in mypy output should be resolved to /persistent/."""
-    mypy_output = "/home/raka/src/app.py:5:1: error: Some error"
-    mock_run.return_value = MagicMock(stdout=mypy_output, stderr="")
-    results = MyPyAdapter().scan("/any/dir")
-    assert len(results) == 1
-    assert "/persistent/" in results[0].file
-
 
 @patch("subprocess.run")
 @patch("os.path.exists", return_value=False)
@@ -365,7 +186,6 @@ def test_mypy_adapter_non_existent_file_abspath(mock_isfile, mock_abs, mock_isab
     mock_run.return_value = MagicMock(stdout=mypy_output, stderr="")
     results = MyPyAdapter().scan("/any/dir")
     assert len(results) == 1
-
 
 @patch("subprocess.run")
 @patch("os.path.isfile", return_value=True)
@@ -380,7 +200,6 @@ def test_mypy_adapter_relative_filename_in_output(mock_exists, mock_abs, mock_is
          patch("os.path.join", side_effect=lambda *args: "/".join(args)):
         results = MyPyAdapter().scan("/base/test.py")
     assert len(results) == 1
-
 
 @patch("subprocess.run")
 def test_ruff_adapter_scan_generic_exception(mock_run):
@@ -403,32 +222,6 @@ def test_mypy_adapter_scan_generic_exception(mock_run):
     mock_run.side_effect = Exception("test error")
     results = MyPyAdapter().scan("test.py")
     assert results == []
-
-@patch("subprocess.run")
-@patch("os.path.exists")
-@patch("os.path.isabs", return_value=True)
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_mypy_adapter_scan_phantom_secondary_fallback(mock_isabs, mock_exists, mock_run):
-    mock_run.return_value = MagicMock(stdout="/home/raka/src/file.py:1: error: msg", stderr="")
-    exists_calls = []
-    def mock_exists_side_effect(path):
-        exists_calls.append(path)
-        return len(exists_calls) >= 3
-    mock_exists.side_effect = mock_exists_side_effect
-    results = MyPyAdapter().scan("/abs/")
-    assert len(results) == 1
-    assert "/persistent/" in results[0].file
-
-@patch("subprocess.run")
-@patch("os.path.exists", return_value=False)
-@patch("os.path.isabs", return_value=True)
-@patch("os.path.abspath", side_effect=lambda x: f"/abs/{x}")
-@pytest.mark.skip(reason="Phantom feature removed")
-def test_mypy_adapter_scan_non_phantom_abspath_fallback(mock_abs, mock_isabs, mock_exists, mock_run):
-    mock_run.return_value = MagicMock(stdout="rel.py:1: error: msg", stderr="")
-    results = MyPyAdapter().scan("/abs/")
-    assert len(results) == 1
-    assert results[0].file == "/abs/rel.py"
 
 @patch("subprocess.run")
 def test_ruff_adapter_custom_bin_path(mock_run):

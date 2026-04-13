@@ -1,6 +1,6 @@
 # Contributing to Auto Linter
 
-> **Join 1+ Contributors Building the Future of Automated Code Quality**
+> **Join 5+ Contributors Building the Future of Automated Code Quality**
 
 Thank you for your interest. This guide covers everything you need
 to start contributing effectively.
@@ -59,7 +59,7 @@ pip install -e ".[dev]"
 
 # Verify installation
 python3 -m pytest tests/ -q
-# Expected: 800 passed
+# Expected: 1500+ passed
 
 # Check version
 python3 -m surfaces.cli_main_entry version
@@ -415,7 +415,7 @@ How does it work? Any design decisions?
 How was it tested? What test cases were added?
 
 ## Checklist
-- [ ] Tests passing (800+)
+- [ ] Tests passing (1500+)
 - [ ] No governance violations
 - [ ] Coverage not decreased
 - [ ] Docs updated if needed

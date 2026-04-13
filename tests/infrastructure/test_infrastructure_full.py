@@ -336,6 +336,7 @@ class TestHTTPRequestClient:
             # First GET returns 500
             mock_response = AsyncMock()
             mock_response.status_code = 500
+            mock_response.raise_for_status = MagicMock()  # sync method, not async
             mock_http.get = AsyncMock(return_value=mock_response)
             mock_http.post = AsyncMock()
             mock_client.return_value = mock_http
