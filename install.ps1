@@ -99,10 +99,15 @@ if ($autoLintCmd) {
 } elseif ($autoLinterCmd) {
     Write-Green "  Installed: $($autoLinterCmd.Source)"
 } else {
-    $localBin = "$env:APPDATA\Python\Python312\Scripts"
-    if (Test-Path "$localBin\auto-lint.exe") {
-        Write-Yellow "  auto-lint is at $localBin\auto-lint.exe"
-        Write-Yellow "  Add to PATH: `$env:PATH += ';$localBin'"
+    # Try to find LOCAL_BIN dynamically
+    $userBase = & $Python -m site --user-base 2>$null
+    if ($userBase) {
+        $localBin = "$userBase\Scripts"
+        if (Test-Path "$localBin\auto-lint.exe") {
+            Write-Yellow "  auto-lint is at $localBin\auto-lint.exe"
+            Write-Yellow "  Add to PATH: `$env:PATH += ';$localBin'"
+            $env:PATH += ";$localBin"
+        }
     }
 }
 

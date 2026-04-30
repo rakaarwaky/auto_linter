@@ -120,7 +120,7 @@ fi
 echo -e "\n${BOLD}[3/5] Installing auto-linter...${NC}"
 
 if [ "$INSTALL_METHOD" = "uv" ]; then
-    uv tool install auto-linter 2>/dev/null || uv pip install auto-linter
+    uv tool install auto-linter || uv pip install auto-linter
 else
     $PYTHON -m pip install --user auto-linter
 fi
@@ -131,11 +131,17 @@ if command -v auto-lint &>/dev/null; then
 elif command -v auto-linter &>/dev/null; then
     echo -e "  ${GREEN}Installed: $(which auto-linter)${NC}"
 else
-    # Try adding to PATH
-    LOCAL_BIN="$HOME/.local/bin"
+    # Try to find LOCAL_BIN dynamically
+    if [ "$OS" = "macos" ]; then
+        LOCAL_BIN=$($PYTHON -m site --user-base 2>/dev/null)/bin
+    else
+        LOCAL_BIN="$HOME/.local/bin"
+    fi
+    
     if [ -f "$LOCAL_BIN/auto-lint" ]; then
         echo -e "  ${YELLOW}auto-lint is at $LOCAL_BIN/auto-lint${NC}"
-        echo -e "  ${YELLOW}Add to PATH: export PATH=\"$HOME/.local/bin:$PATH\"${NC}"
+        echo -e "  ${YELLOW}Add to PATH: export PATH=\"$LOCAL_BIN:\$PATH\"${NC}"
+        export PATH="$LOCAL_BIN:$PATH"
     fi
 fi
 
