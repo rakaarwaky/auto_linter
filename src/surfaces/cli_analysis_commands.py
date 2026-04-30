@@ -1,4 +1,4 @@
-"""Analysis CLI commands: complexity, duplicates, trends, ci, batch."""
+"""Analysis CLI commands: complexity, duplicates, trends, ci, batch, dependencies."""
 import asyncio
 import click
 import os
@@ -13,8 +13,6 @@ def register_analysis_commands(cli):
   @click.argument('path', type=click.Path(exists=True))
   def complexity(path):
     """Run cyclomatic complexity analysis."""
-    if not os.path.isabs(path):
-        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 
@@ -37,8 +35,6 @@ def register_analysis_commands(cli):
   @click.argument('path', type=click.Path(exists=True))
   def duplicates(path):
     """Find code duplication or oversized files."""
-    if not os.path.isabs(path):
-        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 
@@ -60,8 +56,6 @@ def register_analysis_commands(cli):
   @click.argument('path', type=click.Path(exists=True))
   def trends(path):
     """Show quality trends over time."""
-    if not os.path.isabs(path):
-        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 
@@ -83,8 +77,6 @@ def register_analysis_commands(cli):
   @click.option('--exit-zero', is_flag=True, help="Always return exit code 0")
   def ci(path, exit_zero):
     """CI-optimized scan with exit codes."""
-    if not os.path.isabs(path):
-        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 
@@ -105,10 +97,6 @@ def register_analysis_commands(cli):
     if not paths:
       click.echo("No paths provided.")
       return
-
-    for p in paths:
-        if not os.path.isabs(p):
-            raise click.UsageError(f"All paths in batch must be absolute. Got: '{p}'.")
 
     container = get_container()
     all_passing = True
@@ -133,8 +121,6 @@ def register_analysis_commands(cli):
   @click.argument('path', type=click.Path(exists=True))
   def dependencies(path):
     """Scan for dependency vulnerabilities (pip-audit)."""
-    if not os.path.isabs(path):
-        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 

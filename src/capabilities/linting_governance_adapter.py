@@ -1,7 +1,10 @@
 """
 GovernanceAdapter — Architectural Layer Rule Enforcer (Capability).
 
-AES Layer Rules (strict dependency direction):
+Enforces configurable architectural rules. The rules are defined in the 
+configuration file (e.g., auto_linter.config.yaml).
+
+Example AES Layer Rules (often used as defaults):
   surfaces      --> capabilities     (ALLOWED)
   surfaces      --> infrastructure   (FORBIDDEN)
   capabilities  --> infrastructure   (FORBIDDEN - use Taxonomy interfaces)
@@ -13,9 +16,8 @@ AES Layer Rules (strict dependency direction):
 Detection strategy:
   1. Walk all Python files in the scanned path.
   2. For each file, use AST to extract all import targets.
-  3. Apply layer rules to detect violations.
-  4. Use PythonTracer.trace_call_chain to find cross-layer call sites
-     when a caller in a forbidden layer directly invokes infra functions.
+  3. Apply rules from configuration to detect violations.
+  4. Use PythonTracer.trace_call_chain to find cross-layer call sites.
 """
 
 import ast
@@ -23,6 +25,7 @@ import os
 from typing import List, Optional, Tuple
 
 from taxonomy.lint_result_models import ILinterAdapter, LintResult, Severity, ISemanticTracer
+from infrastructure.config_json_provider import load_json_config
 
 
 # ─── Layer Rule Definitions ─────────────────────────────────────────────────
@@ -38,7 +41,7 @@ from taxonomy.lint_result_models import ILinterAdapter, LintResult, Severity, IS
 #       description: "Capabilities must not import Surface"
 
 # Default empty — rules must be configured via config or SKILL.md guidance
-# Komunitas bisa define rules sendiri
+# Community can define their own rules
 LAYER_RULES: List[Tuple[str, str, str]] = []
 
 # Default layer map
@@ -51,14 +54,38 @@ LAYER_MAP = {
     "taxonomy": "taxonomy",
 }
 
+def get_layer_rules() -> List[Tuple[str, str, str]]:
+    """Helper to get governance rules from config."""
+    try:
+        config = load_json_config()
+        if config and hasattr(config, 'governance_rules') and config.governance_rules:
+            rules = []
+            for r in config.governance_rules:
+                if isinstance(r, dict):
+                    rules.append((r.get('from', ''), r.get('to', ''), r.get('description', '')))
+            return rules
+    except Exception:
+        pass
+    return LAYER_RULES
+
+def get_layer_map() -> dict:
+    """Helper to get layer map from config."""
+    try:
+        config = load_json_config()
+        if config and hasattr(config, 'layer_map') and config.layer_map:
+            return config.layer_map
+    except Exception:
+        pass
+    return LAYER_MAP
+
 GOVERNANCE_CODE = "AES001"
 
 
 # ─── AST Import Extractor ────────────────────────────────────────────────────
 
-def _extract_imports(file_path: str) -> List[Tuple[int, str]]:
+def _extract_imports(file_path: str) -> List[Tuple[int, str, Optional[str]]]:
     """
-    Parse a Python file and return (line_number, module_path) tuples
+    Parse a Python file and return (line_number, module_path, imported_name) tuples
     for all import statements found.
     """
     try:
@@ -68,15 +95,54 @@ def _extract_imports(file_path: str) -> List[Tuple[int, str]]:
     except (SyntaxError, OSError):
         return []
 
-    imports: List[Tuple[int, str]] = []
+    imports: List[Tuple[int, str, Optional[str]]] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                imports.append((node.lineno, str(alias.name)))
+                imports.append((node.lineno, str(alias.name), None))
         elif isinstance(node, ast.ImportFrom):
             if node.module:
-                imports.append((node.lineno, str(node.module)))
+                for alias in node.names:
+                    imports.append((node.lineno, str(node.module), str(alias.name)))
     return imports
+
+
+def _detect_layer(module_path: str, layer_map: Optional[dict] = None) -> Optional[str]:
+    """
+    Given a dotted module path like 'src.infrastructure.adapters',
+    return the AES layer name (key from layer_map).
+    """
+    if layer_map is None:
+        layer_map = get_layer_map()
+        
+    parts = module_path.split(".")
+    for part in parts:
+        # Check if part matches any layer name or any component of a layer path
+        for name, path in layer_map.items():
+            path_parts = path.replace("\\", "/").split("/")
+            if part == name or part in path_parts:
+                return name
+    return None
+
+
+def _detect_file_layer(file_path: str, root_dir: str, layer_map: Optional[dict] = None) -> Optional[str]:
+    """
+    Derive the AES layer of a file from its path relative to the source root.
+    """
+    if layer_map is None:
+        layer_map = get_layer_map()
+        
+    try:
+        rel = os.path.relpath(file_path, root_dir).replace("\\", "/")
+        # Check which layer path this file belongs to
+        # Sort by path length descending to match most specific path first
+        sorted_layers = sorted(layer_map.items(), key=lambda x: len(x[1]), reverse=True)
+        for name, path in sorted_layers:
+            if rel.startswith(path.strip("/")) or f"/{path.strip('/')}/" in f"/{rel}/":
+                return name
+    except Exception:
+        pass
+    return None
 
 
 class GovernanceAdapter(ILinterAdapter):
@@ -103,42 +169,12 @@ class GovernanceAdapter(ILinterAdapter):
     def _get_rules(self) -> List[Tuple[str, str, str]]:
         if self._rules is not None:
             return self._rules
-        return LAYER_RULES
+        return get_layer_rules()
 
     def _get_layer_map(self) -> dict:
         if self._layer_map is not None:
             return self._layer_map
-        return LAYER_MAP
-
-    def _detect_layer(self, module_path: str, layer_map: dict) -> Optional[str]:
-        """
-        Given a dotted module path like 'src.infrastructure.adapters',
-        return the AES layer name (key from layer_map).
-        """
-        parts = module_path.split(".")
-        for part in parts:
-            # Check if part matches any layer name or any component of a layer path
-            for name, path in layer_map.items():
-                path_parts = path.replace("\\", "/").split("/")
-                if part == name or part in path_parts:
-                    return name
-        return None
-
-    def _detect_file_layer(self, file_path: str, root_dir: str, layer_map: dict) -> Optional[str]:
-        """
-        Derive the AES layer of a file from its path relative to the source root.
-        """
-        try:
-            rel = os.path.relpath(file_path, root_dir).replace("\\", "/")
-            # Check which layer path this file belongs to
-            # Sort by path length descending to match most specific path first
-            sorted_layers = sorted(layer_map.items(), key=lambda x: len(x[1]), reverse=True)
-            for name, path in sorted_layers:
-                if rel.startswith(path.strip("/")) or f"/{path.strip('/')}/" in f"/{rel}/":
-                    return name
-        except Exception:
-            pass
-        return None
+        return get_layer_map()
 
     def scan(self, path: str) -> List[LintResult]:
         """
@@ -153,15 +189,15 @@ class GovernanceAdapter(ILinterAdapter):
         layer_map = self._get_layer_map()
 
         for file_path in python_files:
-            file_layer = self._detect_file_layer(file_path, root_dir, layer_map)
+            file_layer = _detect_file_layer(file_path, root_dir, layer_map)
 
             # agent is allowed to import everything — skip
             if file_layer == "agent" or file_layer is None:
                 continue
 
             imports = _extract_imports(file_path)
-            for line_no, module_path in imports:
-                target_layer = self._detect_layer(module_path, layer_map)
+            for line_no, module_path, imported_name in imports:
+                target_layer = _detect_layer(module_path, layer_map)
                 if target_layer is None:
                     continue
 
@@ -175,6 +211,7 @@ class GovernanceAdapter(ILinterAdapter):
                             file_layer=file_layer,
                             target_layer=target_layer,
                             root_dir=root_dir,
+                            imported_name=imported_name,
                         )
                         results.append(violation)
                         break  # Only report once per import line
@@ -215,6 +252,7 @@ class GovernanceAdapter(ILinterAdapter):
         file_layer: str,
         target_layer: str,
         root_dir: str,
+        imported_name: Optional[str] = None,
     ) -> LintResult:
         """Construct a CRITICAL LintResult for a layer violation."""
 
@@ -224,8 +262,8 @@ class GovernanceAdapter(ILinterAdapter):
         )
 
         # Optionally enrich with call chain context
-        # Extract the leaf module name as potential function target
-        func_candidate = module_path.split(".")[-1]
+        # Use imported name if available, otherwise fallback to leaf module name
+        func_candidate = imported_name if imported_name and imported_name != "*" else module_path.split(".")[-1]
         related: List[str] = []
         tracer = self.tracer
         if root_dir and tracer:

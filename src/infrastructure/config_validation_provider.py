@@ -27,18 +27,21 @@ class AppConfig:
     def __init__(
         self,
         # ── Transport (.env) ──
-        desktop_commander_url: str = "auto",
-        desktop_commander_timeout: float = 300.0,
+        desktop_commander_url: str | None = None,
+        desktop_commander_timeout: float | None = None,
         # ── Paths (.env) ──
-        phantom_root: str = "",
-        project_root: str = "",
+        phantom_root: str | None = None,
+        project_root: str | None = None,
         # ── Project (YAML) ──
         project: ProjectConfig | None = None,
     ):
-        self.desktop_commander_url = desktop_commander_url
-        self.desktop_commander_timeout = desktop_commander_timeout
-        self.phantom_root = phantom_root or os.path.expanduser("~")
-        self.project_root = project_root or os.getcwd()
+        self.desktop_commander_url = desktop_commander_url or os.environ.get("DESKTOP_COMMANDER_URL", "auto")
+        
+        timeout_env = os.environ.get("DESKTOP_COMMANDER_TIMEOUT", "300")
+        self.desktop_commander_timeout = desktop_commander_timeout if desktop_commander_timeout is not None else float(timeout_env)
+        
+        self.phantom_root = phantom_root or os.environ.get("PHANTOM_ROOT", os.path.expanduser("~"))
+        self.project_root = project_root or os.environ.get("PROJECT_ROOT", os.getcwd())
         self.project = project or ProjectConfig.defaults()
 
     # ── Thresholds shortcut ──
@@ -173,22 +176,23 @@ def load_config(
         if found_env:
             load_dotenv(found_env, override=False)
 
-    # 2. Load config — Priority: .auto_linter.json > pyproject.toml > auto_linter.config.yaml
-    json_config = load_json_config()
-    if json_config:
-        yaml_config = json_config
+    # 2. Load config — Priority: explicit yaml_path > .auto_linter.json > pyproject.toml > auto_linter.config.yaml
+    if yaml_path:
+        yaml_config = _parse_yaml_config(Path(yaml_path))
     else:
-        found_toml = _find_toml_config()
-        if found_toml:
-            yaml_config = _parse_toml_config(found_toml)
-        elif yaml_path:
-            yaml_config = _parse_yaml_config(Path(yaml_path))
+        json_config = load_json_config()
+        if json_config:
+            yaml_config = json_config
         else:
-            found_yaml = _find_yaml_config()
-            if found_yaml:
-                yaml_config = _parse_yaml_config(found_yaml)
+            found_toml = _find_toml_config()
+            if found_toml:
+                yaml_config = _parse_toml_config(found_toml)
             else:
-                yaml_config = ProjectConfig.defaults()
+                found_yaml = _find_yaml_config()
+                if found_yaml:
+                    yaml_config = _parse_yaml_config(found_yaml)
+                else:
+                    yaml_config = ProjectConfig.defaults()
 
     # 3. Build AppConfig from env + YAML
     _config = AppConfig(

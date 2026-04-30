@@ -17,18 +17,12 @@ def register_maintenance_commands(cli):
     click.echo(f" Auto-Linter Statistics for {abs_path}")
     click.echo("=" * 50)
 
-    result = subprocess.run(
-      ['find', abs_path, '-name', '*.py', '-type', 'f'],
-      capture_output=True, text=True
-    )
-    py_count = len(result.stdout.strip().split('\n')) if result.stdout.strip() else 0
+    py_files = list(Path(abs_path).rglob("*.py"))
+    py_count = len(py_files)
     click.echo(f" Python files: {py_count}")
 
-    result = subprocess.run(
-      ['find', abs_path, '-name', 'test_*.py', '-type', 'f'],
-      capture_output=True, text=True
-    )
-    test_count = len(result.stdout.strip().split('\n')) if result.stdout.strip() else 0
+    test_files = [f for f in py_files if f.name.startswith("test_")]
+    test_count = len(test_files)
     click.echo(f" Test files: {test_count}")
 
     if py_count > 0:
@@ -70,8 +64,8 @@ def register_maintenance_commands(cli):
       click.echo(f" Checking {adapter}...")
       try:
         result = subprocess.run(
-          ['pip', 'install', '--upgrade', adapter],
-          capture_output=True, text=True, timeout=30
+          [sys.executable, '-m', 'pip', 'install', '--upgrade', adapter],
+          capture_output=True, text=True, timeout=60
         )
         if result.returncode == 0:
           click.echo(f"   {adapter} updated")

@@ -1,85 +1,86 @@
 # ==============================================================================
 # Auto-Linter Configuration Example (YAML)
 # ==============================================================================
-# File ini mendefinisikan aturan kualitas dan tata kelola arsitektur proyek Anda.
-# Simpan sebagai 'auto_linter.config.yaml' di root proyek Anda.
+# This file defines the quality rules and architectural governance of your project.
+# Save as 'auto_linter.config.yaml' in your project root.
 
 # ------------------------------------------------------------------------------
-# 1. Thresholds (Ambang Batas)
+# 1. Thresholds
 # ------------------------------------------------------------------------------
 thresholds:
-  # Skor minimum agar status 'passing' menjadi True (0.0 - 100.0)
+  # Minimum score for 'passing' status to be True (0.0 - 100.0)
   score: 85.0
   
-  # Kompleksitas siklomatik maksimum per fungsi (Radon)
+  # Maximum cyclomatic complexity per function (Radon)
   complexity: 12
   
-  # Jumlah baris maksimum per file sebelum dianggap melanggar SRP
+  # Maximum line count per file before it's considered an SRP violation
   max_file_lines: 500
 
 # ------------------------------------------------------------------------------
-# 2. Adapter Configuration (Konfigurasi Alat)
+# 2. Adapter Configuration
 # ------------------------------------------------------------------------------
-# Anda bisa mengatur bobot (weight) untuk setiap linter.
-# Skor akhir dihitung berdasarkan pengurangan poin dikalikan bobot ini.
+# You can set weights for each linter.
+# The final score is calculated based on point deductions multiplied by this weight.
 adapters:
   - name: ruff
     weight: 1.0
   - name: mypy
     weight: 1.0
   - name: bandit
-    weight: 1.5  # Isu keamanan lebih berat bobotnya
+    weight: 1.5  # Security issues have higher weights
   - name: radon
     weight: 1.0
   - name: pip-audit
-    weight: 2.0  # Kerentanan library sangat kritis
+    weight: 2.0  # Library vulnerabilities are critical
   - name: governance
-    weight: 2.5  # Pelanggaran arsitektur adalah yang paling fatal
+    weight: 2.5  # Architectural violations are the most fatal
 
 # ------------------------------------------------------------------------------
-# 3. Layer Map (Pemetaan Arsitektur)
+# 3. Layer Map (Architecture Mapping)
 # ------------------------------------------------------------------------------
-# Definisikan nama layer dan lokasi foldernya.
-# Nama layer ini akan digunakan di bagian 'governance_rules'.
+# Define layer names and their folder locations.
+# These layer names will be used in the 'governance_rules' section.
 layer_map:
   surfaces: src/surfaces      # Input/Output (CLI, MCP, Web)
-  capabilities: src/capabilities # Logika Bisnis / Use Cases
+  capabilities: src/capabilities # Business Logic / Use Cases
   agent: src/agent            # Orchestration / DI Container
-  taxonomy: src/taxonomy      # Model data, Interfaces, Konstanta
-  infrastructure: src/infrastructure # Library eksternal, Database, File System
+  taxonomy: src/taxonomy      # Data models, Interfaces, Constants
+  infrastructure: src/infrastructure # External libraries, Database, File System
 
 # ------------------------------------------------------------------------------
-# 4. Governance Rules (Aturan Larangan Import)
+# 4. Governance Rules (Import Prohibition Rules)
 # ------------------------------------------------------------------------------
-# Gunakan aturan ini untuk menjaga agar arsitektur tidak menjadi 'spaghetti'.
+# Use these rules to keep the architecture from becoming 'spaghetti'.
 governance_rules:
-  # Contoh: Mencegah UI/CLI langsung memanggil database
+  # Example: Prevent UI/CLI from calling the database directly
   - from: surfaces
     to: infrastructure
-    description: "Layer Surface tidak boleh import Infrastructure langsung. Gunakan Capabilities."
+    description: "Surface layer must not import Infrastructure directly. Use Capabilities instead."
 
-  # Contoh: Mencegah logika bisnis tergantung pada library teknis tertentu
+  # Example: Prevent business logic from depending on specific technical libraries
   - from: capabilities
     to: infrastructure
-    description: "Layer Capabilities harus independen dari detail teknis Infrastructure."
+    description: "Capabilities layer must be independent of Infrastructure technical details."
 
-  # Contoh: Memastikan Taxonomy tetap murni (tidak punya dependensi lain)
+  # Example: Ensure Taxonomy remains pure (has no other dependencies)
   - from: taxonomy
     to: agent
-    description: "Taxonomy harus murni dan tidak boleh import dari layer Agent."
+    description: "Taxonomy must be pure and must not import from the Agent layer."
 
-  # Contoh: Mencegah dependensi melingkar (Circular Dependency)
+  # Example: Prevent circular dependencies
   - from: infrastructure
     to: surfaces
-    description: "Infrastructure dilarang keras bergantung pada implementasi Surface."
+    description: "Infrastructure is strictly forbidden from depending on Surface implementations."
 
 # ------------------------------------------------------------------------------
-# 5. Ignored Paths (Opsional)
+# 5. Ignored Paths (Optional)
 # ------------------------------------------------------------------------------
-# Daftar folder yang akan diabaikan oleh linter.
+# List of folders to be ignored by the linter.
 ignored_paths:
   - "**/node_modules/**"
   - "**/.venv/**"
   - "**/dist/**"
   - "**/build/**"
   - "**/tests/**"
+

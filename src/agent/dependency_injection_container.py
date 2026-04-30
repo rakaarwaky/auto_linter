@@ -87,7 +87,8 @@ class Container:
         vbin = os.path.dirname(sys.executable)
         self.venv_bin = vbin
         # click.echo(f"Wiring adapters with vbin: {vbin}")
-        self.adapters: List[ILinterAdapter] = [
+        self.adapters: List[ILinterAdapter] = []
+        all_potential_adapters = [
             RuffAdapter(bin_path=vbin),
             MyPyAdapter(bin_path=vbin),
             BanditAdapter(bin_path=vbin),
@@ -104,6 +105,11 @@ class Container:
                 layer_map=layer_map
             ),
         ]
+        
+        for adapter in all_potential_adapters:
+            if config.is_adapter_enabled(adapter.name()):
+                self.adapters.append(adapter)
+        
         # click.echo(f"Initialized {len(self.adapters)} adapters.")
 
         # === USE CASES ===

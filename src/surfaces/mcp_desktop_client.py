@@ -13,11 +13,16 @@ DESKTOP_COMMANDER_URL = os.environ.get(
 )
 
 
+_client_cache = None
+
 def _get_client():
     """Get DesktopCommander client from agent container."""
-    from agent.dependency_injection_container import get_container
-    container = get_container()
-    return container.desktop_commander
+    global _client_cache
+    if _client_cache is None:
+        from agent.dependency_injection_container import get_container
+        container = get_container()
+        _client_cache = container.desktop_commander
+    return _client_cache
 
 
 async def _execute_with_retry(

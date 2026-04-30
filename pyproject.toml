@@ -1,6 +1,6 @@
 [project]
 name = "auto-linter"
-version = "1.6.0"
+version = "1.6.1"
 dependencies = [
     "click",
     "pydantic",
@@ -9,6 +9,7 @@ dependencies = [
     "fastmcp",
     "pyyaml",
     "toml",
+    "watchdog",
 ]
 
 [project.scripts]
@@ -17,4 +18,4 @@ auto-lint = "surfaces.cli_main_entry:main"
 [tool.auto_linter]
 project_name = "test-project"
 thresholds = { score = 95.0, complexity = 5 }
-adapters = ["ruff", "mypy"]
+adapters = ["ruff", "mypy", "bandit", "radon", "governance"]

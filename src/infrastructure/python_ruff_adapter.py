@@ -39,10 +39,9 @@ class RuffAdapter(ILinterAdapter):
                 # logger.info("Ruff returned empty stdout")
                 return []
 
-            try:
-                data = json.loads(stdout_clean)
-            except Exception as e:
-                logger.error(f"Ruff JSON Parse Error: {e} | Content: {stdout_clean[:100]}")
+            data = self._parse_json_output(stdout_clean)
+            if not data:
+                # logger.info("Ruff returned no valid JSON data")
                 return []
 
             data = self._filter_phantom_errors(data)

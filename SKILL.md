@@ -1,5 +1,5 @@
 ---
-version: 1.6.0
+version: 1.6.1
 ---
 # Auto Linter Skill
 
@@ -58,10 +58,12 @@ Check system health: adapters, transport, and DesktopCommander connection.
 ### Setup & Maintenance
 - `auto-lint setup doctor`: Diagnose environment health and linter binaries.
 - `auto-lint setup init`: Automatic environment configuration.
+- `auto-lint setup hermes`: Auto-install into Hermes Agent.
 - `auto-lint setup mcp-config`: Print MCP configuration for clients.
 - `auto-lint adapters`: List all active linters.
-- `auto-lint version`: Show current version (1.6.0).
+- `auto-lint version`: Show current version (1.6.1).
 - `auto-lint config show`: View active configuration (YAML).
+- `auto-lint cancel <job_id>`: Cancel a running lint job.
 
 ### Dev
 - `auto-lint watch <path>`: Monitor files and run lint automatically on changes.

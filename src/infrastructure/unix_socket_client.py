@@ -44,32 +44,27 @@ class UnixSocketClient:
             
             # Read until we have a complete JSON object
             # For simplicity, we assume one JSON object per response
+            # Read until newline (standard for many socket protocols)
             while True:
                 try:
                     chunk = sock.recv(8192)
                     if not chunk:
                         break
                     response_data += chunk
-                    
-                    # Optimization: Only try to parse if it looks like it might be finished
-                    # (ends with newline or closing brace)
-                    stripped = response_data.strip()
-                    if stripped.endswith(b"}"):
-                        try:
-                            return json.loads(stripped.decode("utf-8"))
-                        except json.JSONDecodeError:
-                            # Still incomplete or nested braces, keep reading
-                            pass
+                    if b"\n" in chunk:
+                        break
                 except socket.timeout:
-                    # If we have some data, try to parse it before giving up
                     if response_data:
                         break
                     raise
 
-            # Final attempt
+            # Parse all received data
             try:
-                return json.loads(response_data.decode("utf-8"))
+                # Use strip() to remove the trailing newline
+                return json.loads(response_data.decode("utf-8").strip())
             except json.JSONDecodeError as e:
+                # If we still have data and it didn't end with a newline, it might be incomplete
+                # but we'll report what we have.
                 return {
                     "stdout": "",
                     "stderr": f"Failed to parse response: {e}. Data received: {len(response_data)} bytes",

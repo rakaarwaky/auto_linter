@@ -77,7 +77,18 @@ class HTTPClient:
         start = time.time()
         try:
             client = await self._ensure_client()
-            health_url = self.url.replace("/execute", "/health")
+            # Try configurable health endpoint or default to /health
+            health_path = os.environ.get("DESKTOP_COMMANDER_HEALTH_PATH", "/health")
+            
+            # If the URL already ends with /execute, we replace it. 
+            # Otherwise, we append the health path.
+            if self.url.endswith("/execute"):
+                health_url = self.url.replace("/execute", health_path)
+            else:
+                from urllib.parse import urlparse, urlunparse
+                parsed = urlparse(self.url)
+                health_url = urlunparse(parsed._replace(path=health_path))
+
             response = await client.get(health_url, timeout=5.0)
             if response.status_code == 200:
                 latency_ms = (time.time() - start) * 1000
@@ -85,8 +96,10 @@ class HTTPClient:
                     "status": "healthy",
                     "latency_ms": round(latency_ms, 2),
                     "protocol": "HTTP",
-                    "endpoint": self.url,
+                    "endpoint": health_url,
                 }
+            
+            # Fallback to a simple echo command via the execute endpoint
             result = await self.execute(["echo", "health"], ".")
             latency_ms = (time.time() - start) * 1000
             if result.get("returncode") == 0:
@@ -95,9 +108,25 @@ class HTTPClient:
                     "latency_ms": round(latency_ms, 2),
                     "protocol": "HTTP",
                     "endpoint": self.url,
+                    "method": "echo_fallback"
                 }
-            return {"status": "unhealthy", "error": result.get("stderr", ""), "protocol": "HTTP"}
+            return {"status": "unhealthy", "error": f"Health check failed (Status {response.status_code})", "protocol": "HTTP"}
         except Exception as e:
+            # Final attempt: try echo via execute if even the GET failed
+            try:
+                result = await self.execute(["echo", "health"], ".")
+                if result.get("returncode") == 0:
+                    latency_ms = (time.time() - start) * 1000
+                    return {
+                        "status": "healthy",
+                        "latency_ms": round(latency_ms, 2),
+                        "protocol": "HTTP",
+                        "endpoint": self.url,
+                        "method": "echo_fallback_after_exception"
+                    }
+            except:
+                pass
+            
             latency_ms = (time.time() - start) * 1000
             return {"status": "unhealthy", "error": str(e), "latency_ms": round(latency_ms, 2), "protocol": "HTTP"}
 

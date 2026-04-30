@@ -73,6 +73,10 @@ class RunAnalysisUseCase:
         }
         for adapter in self.adapters:
             output[adapter.name()] = []
+        
+        # Always ensure governance key exists
+        if "governance" not in output:
+            output["governance"] = []
 
         for res in report.results:
             source = res.source
@@ -118,13 +122,18 @@ class ApplyFixesUseCase:
             tracer = self.tracers.get("python")
             if tracer and path.endswith(".py"):
                 # We still use ruff here to find naming violations
-                # In a more generic setup, this might be its own adapter or use case
-                # For now, we'll keep the semantic rename logic tied to Python
+                # We look for ruff in enabled adapters first, but fallback to a new instance if needed
+                from infrastructure.python_linter_adapters import RuffAdapter
+                import sys
                 
-                # Find ruff path from adapters if possible, or assume it's in env
                 ruff_adapter = next((a for a in self.adapters if a.name() == "ruff"), None)
-                if ruff_adapter:
-                    # We reuse the scan to find naming violations
+                if not ruff_adapter:
+                    # Fallback: create a temporary ruff adapter if it exists on system
+                    vbin = os.path.dirname(sys.executable)
+                    ruff_adapter = RuffAdapter(bin_path=vbin)
+                
+                # We reuse the scan to find naming violations
+                try:
                     results = ruff_adapter.scan(path)
                     for r in results:
                         if r.code in ["N802", "N803", "N806", "N801"]:
@@ -144,6 +153,8 @@ class ApplyFixesUseCase:
                                 if isinstance(mods, int) and mods > 0:
                                     renamed_modifications += mods
                                     output_log += f"Semantic Rename: Changed '{old_name}' -> '{new_name}' across {mods} files.\n"
+                except Exception as e:
+                    output_log += f"Warning: Semantic rename scan failed: {e}\n"
 
             # Step 2: Apply fixes via adapters
             for adapter in self.adapters:

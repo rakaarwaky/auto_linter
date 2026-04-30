@@ -13,6 +13,24 @@ class PrettierAdapter(ILinterAdapter):
     def name(self) -> str:
         return "prettier"
 
+    def _resolve_filename(self, path: str) -> str:
+        """Resolve filename with multiple fallbacks for phantom paths."""
+        # 1. Try normalized path (PROJECT_ROOT replacement)
+        norm_path = normalize_path(path)
+        if norm_path and os.path.exists(norm_path):
+            return norm_path
+            
+        # 2. Try absolute path of original
+        abs_path = os.path.abspath(path)
+        if os.path.exists(abs_path):
+            return abs_path
+            
+        # 3. Last resort: Return normalized path if it exists now (secondary check for some test environments)
+        if norm_path and os.path.exists(norm_path):
+            return norm_path
+            
+        return norm_path or abs_path
+
     def scan(self, path: str) -> List[LintResult]:
         if os.path.isfile(path) and not path.endswith(
             (".ts", ".tsx", ".js", ".jsx", ".json", ".css", ".md", ".yml", ".yaml")
@@ -31,15 +49,7 @@ class PrettierAdapter(ILinterAdapter):
             combined_output = (result.stdout + result.stderr).strip()
 
             if "[warn]" in combined_output:
-                # Ensure absolute path for Prettier
-                filename = normalize_path(path)
-                if not filename:
-                    filename = os.path.abspath(path)
-                if not os.path.isabs(filename):
-                    filename = os.path.abspath(filename)
-                if not os.path.exists(filename):
-                    filename = os.path.abspath(path)
-
+                filename = self._resolve_filename(path)
                 results.append(
                     LintResult(
                         file=filename,
@@ -70,21 +80,41 @@ class TSCAdapter(ILinterAdapter):
     def name(self) -> str:
         return "tsc"
 
+    def _resolve_filename(self, filename: str, scan_path: str) -> str:
+        """Resolve filename with multiple fallbacks for phantom paths."""
+        # Ensure absolute path first
+        if not os.path.isabs(filename):
+            base_dir = os.path.dirname(os.path.abspath(scan_path)) if os.path.isfile(scan_path) else os.path.abspath(scan_path)
+            filename = os.path.join(base_dir, filename)
+
+        # 1. Try normalized path
+        norm_path = normalize_path(filename)
+        if norm_path and os.path.exists(norm_path):
+            return norm_path
+            
+        # 2. Try absolute path
+        abs_path = os.path.abspath(filename)
+        if os.path.exists(abs_path):
+            return abs_path
+            
+        # 3. Last resort
+        if norm_path and os.path.exists(norm_path):
+            return norm_path
+            
+        return norm_path or abs_path
+
     def scan(self, path: str) -> List[LintResult]:
         if os.path.isfile(path) and not path.endswith((".ts", ".tsx")):
             return []
 
-        normalized = normalize_path(path)
-        if normalized:
-            path = normalized
-        else:
-            path = os.path.abspath(path)
-
         results = []
         try:
+            # We must run npx tsc in the directory where tsconfig.json is
+            # usually the root or the parent of path
+            abs_path = os.path.abspath(path)
             cmd = ["npx", "tsc", "--noEmit", "--pretty", "false"]
-            if path != "." and path != "./":
-                cmd.append(path)
+            if abs_path != "." and abs_path != "./":
+                cmd.append(abs_path)
 
             result = subprocess.run(cmd, capture_output=True, text=True, check=False)
             output = result.stdout + result.stderr
@@ -98,20 +128,7 @@ class TSCAdapter(ILinterAdapter):
                 if match:
                     filename, line_num, col_num, code, msg = match.groups()
                     
-                    # Ensure absolute path
-                    if not os.path.isabs(filename):
-                        base_dir = os.path.dirname(os.path.abspath(path)) if os.path.isfile(path) else os.path.abspath(path)
-                        filename = os.path.join(base_dir, filename)
-
-                    filename_norm = normalize_path(filename)
-                    if filename_norm:
-                        filename = filename_norm
-                    
-                    if filename and not os.path.isabs(filename):
-                        filename = os.path.abspath(filename)
-                        
-                    if filename and not os.path.exists(filename):
-                        filename = os.path.abspath(filename)
+                    filename = self._resolve_filename(filename, abs_path)
 
                     results.append(
                         LintResult(
@@ -130,22 +147,33 @@ class TSCAdapter(ILinterAdapter):
         return results
 
     def apply_fix(self, path: str) -> bool:
-        # TSC does not support auto-fixes
         return False
 
 class ESLintAdapter(ILinterAdapter):
     def name(self) -> str:
         return "eslint"
 
+    def _resolve_filename(self, filename: str) -> str:
+        """Resolve filename with multiple fallbacks for phantom paths."""
+        # 1. Try normalized path
+        norm_path = normalize_path(filename)
+        if norm_path and os.path.exists(norm_path):
+            return norm_path
+            
+        # 2. Try absolute path
+        abs_path = os.path.abspath(filename)
+        if os.path.exists(abs_path):
+            return abs_path
+            
+        # 3. Last resort
+        if norm_path and os.path.exists(norm_path):
+            return norm_path
+            
+        return norm_path or abs_path
+
     def scan(self, path: str) -> List[LintResult]:
         if os.path.isfile(path) and not path.endswith((".ts", ".tsx", ".js", ".jsx")):
             return []
-
-        normalized = normalize_path(path)
-        if normalized:
-            path = normalized
-        else:
-            path = os.path.abspath(path)
 
         results = []
         try:
@@ -159,17 +187,7 @@ class ESLintAdapter(ILinterAdapter):
             data = json.loads(result.stdout)
             for file_data in data:
                 filename = file_data["filePath"]
-                
-                # Ensure absolute path
-                if not os.path.isabs(filename):
-                    filename = os.path.abspath(filename)
-
-                filename_norm = normalize_path(filename)
-                if filename_norm:
-                    filename = filename_norm
-                
-                if filename and not os.path.exists(filename):
-                    filename = os.path.abspath(filename)
+                filename = self._resolve_filename(filename)
 
                 for msg in file_data["messages"]:
                     results.append(

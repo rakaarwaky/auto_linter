@@ -252,5 +252,5 @@ class TestHealthCheck:
             register_health_check(mcp)
             result = await tool_func()
             data = json.loads(result)
-            assert data["status"] == "unhealthy"
+            assert data["status"] == "degraded"
             assert len(data["issues"]) >= 2

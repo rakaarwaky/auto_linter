@@ -76,7 +76,7 @@ uv tool install auto-linter
 Or zero-install:
 
 ```bash
-uvx auto-linter check ./src/
+uvx auto-lint check ./src/
 ```
 
 Or one-liner installer (Linux/macOS):
@@ -113,7 +113,7 @@ auto-lint fix ./src/
 auto-lint security ./src/
 
 # Generate report
-auto-lint report ./src/ --format json
+auto-lint report ./src/ --output-format json
 ```
 
 ---

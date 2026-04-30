@@ -1,6 +1,6 @@
-# Tujuan:  Fix Python path untuk test environment
-# Masalah: Test gagal karena module tidak ditemukan (PYTHONPATH tidak diset)
-# Solusi:  Tambahkan src/ ke sys.path saat pytest berjalan
+# Purpose: Fix Python path for test environment
+# Issue:   Tests failed because modules were not found (PYTHONPATH not set)
+# Solution: Add src/ to sys.path when pytest runs
 
 import sys
 import os

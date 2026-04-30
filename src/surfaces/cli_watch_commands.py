@@ -50,12 +50,28 @@ def register_watch_command(cli):
         observer = Observer()
         observer.schedule(lint_handler._handler, abs_path, recursive=True)
         observer.start()
-        try:
-            loop.run_forever()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            # Clean up
-            observer.stop()
-            observer.join()
-            loop.close()
+        # Retry loop for the event loop to handle crashes
+        max_crashes = 5
+        crash_count = 0
+        import time
+        
+        while crash_count < max_crashes:
+            try:
+                loop.run_forever()
+                break # Normal exit (e.g. KeyboardInterrupt handled below)
+            except KeyboardInterrupt:
+                break
+            except Exception as e:
+                crash_count += 1
+                click.echo(f"Error in watch event loop: {e}")
+                if crash_count < max_crashes:
+                    wait = min(2 ** crash_count, 30)
+                    click.echo(f"Restarting in {wait}s... ({crash_count}/{max_crashes})")
+                    time.sleep(wait)
+                else:
+                    click.echo("Too many crashes, stopping watch command.")
+
+        # Clean up
+        observer.stop()
+        observer.join()
+        loop.close()

@@ -26,10 +26,10 @@ class TestDiffCommand:
         f1.write_text("x = 1\n")
         f2 = tmp_path / "v2.py"
         f2.write_text("x = 2\n")
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
+        with patch("surfaces.cli_dev_commands.get_container") as mock_gc:
             container = MagicMock()
             mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
+            container.analysis_use_case.execute = AsyncMock(return_value=mock_report)
             container.analysis_use_case.to_dict.side_effect = [
                 {"score": 80.0},
                 {"score": 85.0},
@@ -44,10 +44,10 @@ class TestDiffCommand:
         f1.write_text("x = 1\n")
         f2 = tmp_path / "v2.py"
         f2.write_text("x = 2\n")
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
+        with patch("surfaces.cli_dev_commands.get_container") as mock_gc:
             container = MagicMock()
             mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
+            container.analysis_use_case.execute = AsyncMock(return_value=mock_report)
             container.analysis_use_case.to_dict.side_effect = [
                 {"score": 80.0},
                 {"score": 85.0},
@@ -84,10 +84,10 @@ class TestDiffCommand:
         f1.write_text("x = 1\n")
         f2 = tmp_path / "v2.py"
         f2.write_text("x = 2\n")
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
+        with patch("surfaces.cli_dev_commands.get_container") as mock_gc:
             container = MagicMock()
             mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
+            container.analysis_use_case.execute = AsyncMock(return_value=mock_report)
             container.analysis_use_case.to_dict.side_effect = [
                 {"score": 85.0},
                 {"score": 85.0},
@@ -160,6 +160,9 @@ class TestIgnoreCommand:
         result = runner.invoke(cli_group, ["ignore", "E501", "--path", str(config)])
         assert result.exit_code == 0
         assert "Added" in result.output
+        import yaml
+        data = yaml.safe_load(config.read_text())
+        assert "E501" in data["ignored_rules"]
 
     def test_ignore_remove(self, runner, cli_group, tmp_path):
         """Test ignore with --remove (lines 88-90)."""
@@ -168,6 +171,9 @@ class TestIgnoreCommand:
         result = runner.invoke(cli_group, ["ignore", "E501", "--remove", "--path", str(config)])
         assert result.exit_code == 0
         assert "Removed" in result.output
+        import yaml
+        data = yaml.safe_load(config.read_text())
+        assert "E501" not in data["ignored_rules"]
 
     def test_ignore_remove_not_found(self, runner, cli_group, tmp_path):
         """Test ignore --remove when rule not in list (line 95)."""
@@ -193,8 +199,8 @@ class TestIgnoreCommand:
         assert result.exit_code == 0
         assert "Added" in result.output
         # Verify the key was added
-        import json
-        data = json.loads(config.read_text())
+        import yaml
+        data = yaml.safe_load(config.read_text())
         assert "ignored_rules" in data
         assert "E501" in data["ignored_rules"]
 
@@ -245,10 +251,11 @@ class TestConfigCommand:
 
 class TestExportCommand:
     def test_export_json(self, runner, cli_group):
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
+        with patch("surfaces.cli_dev_commands.get_container") as mock_gc:
             container = MagicMock()
             mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
+            async def mock_execute(*args): return mock_report
+            container.analysis_use_case.execute = mock_execute
             container.analysis_use_case.to_dict.return_value = {"score": 85.0}
             mock_gc.return_value = container
             result = runner.invoke(cli_group, ["export", "json"])
@@ -258,10 +265,11 @@ class TestExportCommand:
     def test_export_json_with_output_file(self, runner, cli_group, tmp_path):
         """Test export with --output file (line 155)."""
         output_file = tmp_path / "report.json"
-        with patch("agent.dependency_injection_container.get_container") as mock_gc:
+        with patch("surfaces.cli_dev_commands.get_container") as mock_gc:
             container = MagicMock()
             mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
+            async def mock_execute(*args): return mock_report
+            container.analysis_use_case.execute = mock_execute
             container.analysis_use_case.to_dict.return_value = {"score": 85.0}
             mock_gc.return_value = container
             result = runner.invoke(cli_group, ["export", "json", "-o", str(output_file)])
@@ -271,11 +279,12 @@ class TestExportCommand:
 
     def test_export_sarif(self, runner, cli_group):
         """Test export in sarif format (line 153)."""
-        with patch("agent.dependency_injection_container.get_container") as mock_gc, \
+        with patch("surfaces.cli_dev_commands.get_container") as mock_gc, \
              patch("capabilities.linting_report_formatters.to_sarif", return_value="sarif output"):
             container = MagicMock()
             mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
+            async def mock_execute(*args): return mock_report
+            container.analysis_use_case.execute = mock_execute
             container.analysis_use_case.to_dict.return_value = {"score": 85.0}
             mock_gc.return_value = container
             result = runner.invoke(cli_group, ["export", "sarif"])
@@ -283,11 +292,12 @@ class TestExportCommand:
 
     def test_export_junit(self, runner, cli_group):
         """Test export in junit format."""
-        with patch("agent.dependency_injection_container.get_container") as mock_gc, \
+        with patch("surfaces.cli_dev_commands.get_container") as mock_gc, \
              patch("capabilities.linting_report_formatters.to_junit", return_value="junit output"):
             container = MagicMock()
             mock_report = MagicMock()
-            container.analysis_use_case.execute = MagicMock(return_value=mock_report)
+            async def mock_execute(*args): return mock_report
+            container.analysis_use_case.execute = mock_execute
             container.analysis_use_case.to_dict.return_value = {"score": 85.0}
             mock_gc.return_value = container
             result = runner.invoke(cli_group, ["export", "junit"])

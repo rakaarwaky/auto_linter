@@ -167,15 +167,15 @@ class TestPipelineExecutionOrchestrator:
 
         container = MagicMock()
         mock_report = MagicMock()
-        container.analysis_use_case.execute.return_value = mock_report
+        container.analysis_use_case.execute = AsyncMock(return_value=mock_report)
         container.analysis_use_case.to_dict.return_value = {
             "score": 85.0,
             "is_passing": True,
         }
-
+    
         pipeline = Pipeline(container)
         result = pipeline.process_watch_event("test.py")
-
+    
         assert result["file"] == "test.py"
         assert result["score"] == 85.0
         assert result["is_passing"] is True
@@ -244,16 +244,18 @@ class TestTrackingJobRegistry:
         with pytest.raises(TimeoutError):
             await run_with_retry(mock_func, max_retries=2, base_delay=0.01)
 
-    def test_cancel_job_not_running(self):
+    @pytest.mark.asyncio
+    async def test_cancel_job_not_running(self):
         """Test cancel_job when job is not in running state."""
         from agent.tracking_job_registry import _jobs, cancel_job
-
+    
         _jobs["job1"] = {"status": "completed"}
-        result = cancel_job("job1")
+        result = await cancel_job("job1")
         assert result is False
-
-    def test_cancel_job_not_found(self):
+    
+    @pytest.mark.asyncio
+    async def test_cancel_job_not_found(self):
         """Test cancel_job when job doesn't exist."""
         from agent.tracking_job_registry import cancel_job
-        result = cancel_job("nonexistent")
+        result = await cancel_job("nonexistent")
         assert result is False

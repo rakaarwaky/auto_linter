@@ -185,7 +185,9 @@ class TestPipelineLines197and272:
         mock_container.analysis_use_case.execute = MagicMock(
             return_value=async_execute("test.py")
         )
-
+        # Mock to_dict to return its argument
+        mock_container.analysis_use_case.to_dict.side_effect = lambda x: x
+    
         pipeline = Pipeline(mock_container)
         result = pipeline.process_watch_event("test.py")
         # Should handle via asyncio.run and return the dict from the coroutine

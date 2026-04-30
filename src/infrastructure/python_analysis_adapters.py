@@ -37,6 +37,8 @@ class ComplexityAdapter(ILinterAdapter):
             data = json.loads(result.stdout)
             for filename, issues in data.items():
                 for issue in issues:
+                    if not isinstance(issue, dict):
+                        continue
                     if issue.get("complexity", 0) > 10:
                         results.append(LintResult(
                             file=filename,

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1 (2026-04-30)
+
+### Improved
+- **Version Alignment**: Synced versioning across all metadata files (pyproject.toml, SKILL.md, PRD.md).
+
 ## 1.6.0 (2026-04-30) — CI/CD Modernization
 
 ### CI/CD & Automation

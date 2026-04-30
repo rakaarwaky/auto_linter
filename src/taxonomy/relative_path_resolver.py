@@ -18,8 +18,9 @@ def normalize_path(path: str) -> str:
     if phantom_root and actual_root and phantom_root in path:
         path = path.replace(phantom_root, actual_root)
     
-    # Ensure it's absolute if it looks like a relative project path
+    # Ensure it's absolute if it looks like a relative project path and we're likely in the project
     if path.startswith("src/") or path.startswith("./src/"):
-        path = os.path.abspath(path)
+        if "auto_linter" in os.getcwd() or os.path.exists(".git"):
+            path = os.path.abspath(path)
              
     return path
