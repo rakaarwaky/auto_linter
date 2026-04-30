@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.2 (2026-04-30)
+
+### Fixed
+- **Package Metadata**: Fixed a critical issue where `pyproject.toml` was truncated, causing PyPI upload failures.
+
 ## 1.6.1 (2026-04-30)
 
 ### Improved

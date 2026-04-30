@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 
-## Auto Linter MCP Server v1.6.1
+## Auto Linter MCP Server v1.6.2
 
 ---
 
@@ -8,7 +8,7 @@
 
 **Name**: Auto Linter
 **Type**: MCP Server + CLI Tool
-**Version**: 1.6.1
+**Version**: 1.6.2
 **License**: MIT
 **Language**: Python >= 3.12
 

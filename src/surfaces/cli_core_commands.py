@@ -275,7 +275,7 @@ def version():
   try:
     ver = importlib.metadata.version("auto-linter")
   except importlib.metadata.PackageNotFoundError:
-    ver = "1.6.1"
+    ver = "1.6.2"
   click.echo(f"Auto-Linter v{ver} (AES Semantic Builder)")
 
 
