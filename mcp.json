@@ -1,11 +1,13 @@
 {
   "mcpServers": {
     "auto-linter": {
-      "command": "/home/raka/mcp-servers/auto_linter/.venv/bin/python3",
+      "command": "uv",
       "args": [
-        "/home/raka/mcp-servers/auto_linter/src/surfaces/mcp_server_entry.py"
-      ],
-      "cwd": "/home/raka/mcp-servers/auto_linter"
+        "--directory",
+        "/home/raka/mcp-servers/auto_linter",
+        "run",
+        "auto-linter"
+      ]
     }
   }
 }
