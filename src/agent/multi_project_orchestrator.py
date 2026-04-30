@@ -77,11 +77,15 @@ class MultiProjectOrchestrator:
 
     async def scan_all_projects(
         self,
-        root: str | Path,
+        root: str | Path | list[str | Path],
         max_concurrency: int = 10,
     ) -> AggregatedResults:
-        """Scan all projects in a workspace."""
-        projects = find_projects(root)
+        """Scan all projects in a workspace or a specific list of projects."""
+        if isinstance(root, list):
+            projects = [Path(p) for p in root]
+        else:
+            projects = find_projects(root)
+            
         if not projects:
             return AggregatedResults()
         semaphore = asyncio.Semaphore(max_concurrency)

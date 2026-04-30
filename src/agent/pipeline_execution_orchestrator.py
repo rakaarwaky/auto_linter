@@ -31,7 +31,7 @@ class Pipeline:
     ) -> dict[str, Any]:
         """Full pipeline execution: receive → think → act → respond."""
         # 1. Receive — create job
-        job_id = create_job(action)
+        job_id = await create_job(action)
 
         try:
             # 2. Think — validate and decide
@@ -50,25 +50,25 @@ class Pipeline:
                 result = await self._dispatch(action, args or {})
 
             # 4. Respond — format and complete
-            complete_job(job_id, result)
+            await complete_job(job_id, result)
             result["job_id"] = job_id
             return result
 
         except Exception as e:
-            fail_job(job_id, str(e))
+            await fail_job(job_id, str(e))
             return self._error_response(str(e), job_id=job_id)
 
     async def execute_check(self, path: str) -> dict[str, Any]:
         """Direct lint check — optimized pipeline path."""
-        job_id = create_job("check")
+        job_id = await create_job("check")
         try:
             report = await self.container.analysis_use_case.execute(path)
             data = self.container.analysis_use_case.to_dict(report)
-            complete_job(job_id, data)
+            await complete_job(job_id, data)
             data["job_id"] = job_id
             return data
         except Exception as e:
-            fail_job(job_id, str(e))
+            await fail_job(job_id, str(e))
             return {"error": str(e), "job_id": job_id}
 
     async def _dispatch(self, action: str, args: dict) -> dict[str, Any]:
@@ -171,7 +171,7 @@ class Pipeline:
         
         This consolidates multi-project orchestration that was scattered in infrastructure.
         """
-        job_id = create_job("multi_project")
+        job_id = await create_job("multi_project")
 
         try:
             # Create tasks for each project
@@ -190,12 +190,12 @@ class Pipeline:
 
             # Aggregate results
             aggregate = self._aggregate_multi_project_results(paths, results)
-            complete_job(job_id, aggregate)
+            await complete_job(job_id, aggregate)
             aggregate["job_id"] = job_id
             return aggregate
 
         except Exception as e:
-            fail_job(job_id, str(e))
+            await fail_job(job_id, str(e))
             return self._error_response(str(e), job_id=job_id)
 
     async def _lint_single_project(self, path: str) -> dict[str, Any]:
@@ -247,36 +247,51 @@ class Pipeline:
         This consolidates watch orchestration that was scattered in surfaces.
         Returns the initial lint result. The caller should set up the file watcher.
         """
-        job_id = create_job("watch")
+        job_id = await create_job("watch")
 
         try:
             report = await self.container.analysis_use_case.execute(path)
             data = self.container.analysis_use_case.to_dict(report)
-            complete_job(job_id, data)
+            await complete_job(job_id, data)
             data["job_id"] = job_id
             return data
 
         except Exception as e:
-            fail_job(job_id, str(e))
+            await fail_job(job_id, str(e))
             return self._error_response(str(e), job_id=job_id)
 
     def process_watch_event(self, file_path: str) -> dict[str, Any]:
         """Process a file change event in watch mode.
         
         This is a sync method for use in watchdog event handlers.
+        Safely handles async execution from both threaded and loop-running contexts.
         """
+        async def _run_analysis():
+            report = await self.container.analysis_use_case.execute(file_path)
+            return self.container.analysis_use_case.to_dict(report)
+
         try:
-            report = self.container.analysis_use_case.execute(file_path)
-            # Note: This is a sync call - in production should be async
-            if asyncio.iscoroutine(report):
-                return asyncio.run(report)
-            data = self.container.analysis_use_case.to_dict(report)
+            try:
+                # Check if an event loop is already running in this thread
+                loop = asyncio.get_running_loop()
+                # If running, we are likely in an async context already.
+                # Since this is a sync wrapper, we use run_coroutine_threadsafe if in a thread,
+                # but this is tricky. For watchdog, it's usually a dedicated thread.
+                fut = asyncio.run_coroutine_threadsafe(_run_analysis(), loop)
+                data = fut.result(timeout=300)
+            except RuntimeError:
+                # No event loop in this thread (typical for watchdog threads)
+                # It is safe to use asyncio.run()
+                data = asyncio.run(_run_analysis())
+
             return {
                 "file": file_path,
                 "score": data.get("score", 0.0),
                 "is_passing": data.get("is_passing", False),
+                "results": data
             }
         except Exception as e:
+            logger.error(f"Error processing watch event for {file_path}: {e}")
             return {
                 "file": file_path,
                 "error": str(e),

@@ -1,0 +1,85 @@
+# ==============================================================================
+# Auto-Linter Configuration Example (YAML)
+# ==============================================================================
+# File ini mendefinisikan aturan kualitas dan tata kelola arsitektur proyek Anda.
+# Simpan sebagai 'auto_linter.config.yaml' di root proyek Anda.
+
+# ------------------------------------------------------------------------------
+# 1. Thresholds (Ambang Batas)
+# ------------------------------------------------------------------------------
+thresholds:
+  # Skor minimum agar status 'passing' menjadi True (0.0 - 100.0)
+  score: 85.0
+  
+  # Kompleksitas siklomatik maksimum per fungsi (Radon)
+  complexity: 12
+  
+  # Jumlah baris maksimum per file sebelum dianggap melanggar SRP
+  max_file_lines: 500
+
+# ------------------------------------------------------------------------------
+# 2. Adapter Configuration (Konfigurasi Alat)
+# ------------------------------------------------------------------------------
+# Anda bisa mengatur bobot (weight) untuk setiap linter.
+# Skor akhir dihitung berdasarkan pengurangan poin dikalikan bobot ini.
+adapters:
+  - name: ruff
+    weight: 1.0
+  - name: mypy
+    weight: 1.0
+  - name: bandit
+    weight: 1.5  # Isu keamanan lebih berat bobotnya
+  - name: radon
+    weight: 1.0
+  - name: pip-audit
+    weight: 2.0  # Kerentanan library sangat kritis
+  - name: governance
+    weight: 2.5  # Pelanggaran arsitektur adalah yang paling fatal
+
+# ------------------------------------------------------------------------------
+# 3. Layer Map (Pemetaan Arsitektur)
+# ------------------------------------------------------------------------------
+# Definisikan nama layer dan lokasi foldernya.
+# Nama layer ini akan digunakan di bagian 'governance_rules'.
+layer_map:
+  surfaces: src/surfaces      # Input/Output (CLI, MCP, Web)
+  capabilities: src/capabilities # Logika Bisnis / Use Cases
+  agent: src/agent            # Orchestration / DI Container
+  taxonomy: src/taxonomy      # Model data, Interfaces, Konstanta
+  infrastructure: src/infrastructure # Library eksternal, Database, File System
+
+# ------------------------------------------------------------------------------
+# 4. Governance Rules (Aturan Larangan Import)
+# ------------------------------------------------------------------------------
+# Gunakan aturan ini untuk menjaga agar arsitektur tidak menjadi 'spaghetti'.
+governance_rules:
+  # Contoh: Mencegah UI/CLI langsung memanggil database
+  - from: surfaces
+    to: infrastructure
+    description: "Layer Surface tidak boleh import Infrastructure langsung. Gunakan Capabilities."
+
+  # Contoh: Mencegah logika bisnis tergantung pada library teknis tertentu
+  - from: capabilities
+    to: infrastructure
+    description: "Layer Capabilities harus independen dari detail teknis Infrastructure."
+
+  # Contoh: Memastikan Taxonomy tetap murni (tidak punya dependensi lain)
+  - from: taxonomy
+    to: agent
+    description: "Taxonomy harus murni dan tidak boleh import dari layer Agent."
+
+  # Contoh: Mencegah dependensi melingkar (Circular Dependency)
+  - from: infrastructure
+    to: surfaces
+    description: "Infrastructure dilarang keras bergantung pada implementasi Surface."
+
+# ------------------------------------------------------------------------------
+# 5. Ignored Paths (Opsional)
+# ------------------------------------------------------------------------------
+# Daftar folder yang akan diabaikan oleh linter.
+ignored_paths:
+  - "**/node_modules/**"
+  - "**/.venv/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/tests/**"

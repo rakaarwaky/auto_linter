@@ -117,9 +117,18 @@ class TrendsAdapter(ILinterAdapter):
     def scan(self, path: str) -> List[LintResult]:
         results: List[LintResult] = []
         if os.path.exists(self.history_file):
+            history = []
             try:
-                with open(self.history_file, "r") as f:
-                    history = [json.loads(line) for line in f]
+                with open(self.history_file, "r", encoding="utf-8") as f:
+                    for line_num, line in enumerate(f, 1):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            history.append(json.loads(line))
+                        except json.JSONDecodeError as e:
+                            logger.warning(f"Skipping corrupted line {line_num} in {self.history_file}: {e}")
+                            continue
                 if len(history) > 1:
                     last_score = history[-1].get("score", 0)
                     prev_score = history[-2].get("score", 0)
@@ -133,7 +142,8 @@ class TrendsAdapter(ILinterAdapter):
                             source="trends",
                             severity=Severity.MEDIUM,
                         ))
-            except Exception:
+            except (OSError, IOError) as e:
+                logger.warning(f"Could not read history file {self.history_file}: {e}")
                 pass
         return results
 

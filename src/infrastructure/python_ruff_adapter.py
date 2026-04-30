@@ -28,14 +28,21 @@ class RuffAdapter(ILinterAdapter):
             executable = self._resolve_executable("ruff")
 
             cmd = [executable, "check", abs_path, "--output-format=json", "--exit-zero", "--no-cache"]
-            result = subprocess.run(cmd, capture_output=True, text=True, check=False, cwd=os.getcwd())
+            # DEBUG: click.echo(f"Running: {' '.join(cmd)}")
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False, cwd=os.getcwd(), timeout=60)
+
+            if result.stderr:
+                logger.error(f"Ruff Stderr: {result.stderr}")
 
             stdout_clean = result.stdout.strip()
             if not stdout_clean:
+                # logger.info("Ruff returned empty stdout")
                 return []
 
-            data = self._parse_json_output(stdout_clean)
-            if not data:
+            try:
+                data = json.loads(stdout_clean)
+            except Exception as e:
+                logger.error(f"Ruff JSON Parse Error: {e} | Content: {stdout_clean[:100]}")
                 return []
 
             data = self._filter_phantom_errors(data)
@@ -55,7 +62,7 @@ class RuffAdapter(ILinterAdapter):
         try:
             executable = self._resolve_executable("ruff")
             cmd = [executable, "check", path, "--fix", "--exit-zero"]
-            subprocess.run(cmd, capture_output=True, text=True, check=False, cwd=os.getcwd())
+            subprocess.run(cmd, capture_output=True, text=True, check=False, cwd=os.getcwd(), timeout=60)
             return True
         except Exception as e:
             logger.error(f"Error applying Ruff fixes: {e}")

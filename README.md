@@ -36,7 +36,7 @@
 
 ## Why Use Auto Linter
 
-> ⚠️ **Stop Wasting Hours on Manual Linting** — Your competitors are already using automated quality gates.
+>  **Stop Wasting Hours on Manual Linting** — Your competitors are already using automated quality gates.
 
 ### For Users
 

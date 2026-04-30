@@ -5,12 +5,14 @@ from typing import List, Dict, Any, Optional
 class RunAnalysisUseCase:
     """Orchestrates the multi-linter analysis (Capability)."""
 
-    def __init__(self, adapters: List[ILinterAdapter], tracers: Optional[Dict[str, ISemanticTracer]] = None):
+    def __init__(self, adapters: List[ILinterAdapter], tracers: Optional[Dict[str, ISemanticTracer]] = None, threshold: float = 80.0):
         self.adapters = adapters
         self.tracers = tracers or {}
+        self.threshold = threshold
 
     async def execute(self, path: str) -> GovernanceReport:
         report = GovernanceReport()
+        # Ensure is_passing is tracked correctly against threshold
         root_dir = path if os.path.exists(path) and os.path.isdir(path) else os.path.dirname(path)
 
         for adapter in self.adapters:
@@ -19,12 +21,11 @@ class RunAnalysisUseCase:
                 for res in results:
                     report.add_result(res)
             except Exception as e:
-                # In a real Agentic structure, we'd log this to an Infrastructure logger
                 import logging
                 logger = logging.getLogger("auto_linter.linting")
                 logger.error(f"Error in adapter {adapter.name()}: {e}")
 
-        # Pass 2: Enrichment (Diagnostic Context Phase)
+        # Pass 2: Enrichment...
         for res in report.results:
             tracer = self.tracers.get("python") if res.file.endswith(".py") else self.tracers.get("js")
             if not tracer:
@@ -58,26 +59,28 @@ class RunAnalysisUseCase:
                         if flows:
                             res.related_locations.extend(flows)
 
+        # Final threshold check
+        if report.score < self.threshold:
+            report.is_passing = False
+
         return report
 
     def to_dict(self, report: GovernanceReport) -> dict:
-        """Converts report to standardized JSON output."""
+        """Converts report to standardized JSON output with dynamic adapter awareness."""
+        # Initialize output with all known adapters as CLEAN (empty list)
         output: Dict[str, Any] = {
-            "governance": [],
-            "ruff": [],
-            "mypy": [],
-            "prettier": [],
-            "eslint": [],
-            "tsc": [],
             "summary": {},
         }
+        for adapter in self.adapters:
+            output[adapter.name()] = []
 
         for res in report.results:
             source = res.source
             if source == "summary":
-                source = "governance" # Redirect summary source to governance
+                source = "governance"
             
-            if source not in output or not isinstance(output[source], list):
+            # Ensure the source key exists (for plugins/dynamic adapters)
+            if source not in output:
                 output[source] = []
 
             output[source].append(

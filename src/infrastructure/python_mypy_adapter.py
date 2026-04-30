@@ -28,7 +28,7 @@ class MyPyAdapter(ILinterAdapter):
             executable = self._resolve_executable("mypy")
 
             cmd = [executable, abs_path, "--ignore-missing-imports", "--no-error-summary"]
-            result = subprocess.run(cmd, capture_output=True, text=True, check=False, cwd=os.getcwd())
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False, cwd=os.getcwd(), timeout=120)
             output = result.stdout + result.stderr
 
             pattern = re.compile(r"^([^:]+):(\d+):(?:(\d+):)?\s+(\w+):\s+(.*)$")

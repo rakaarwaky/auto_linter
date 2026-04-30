@@ -13,9 +13,6 @@ from typing import Optional
 
 from taxonomy import (
     ProjectConfig,
-    Thresholds,
-    AdapterEntry,
-    AdapterStatus,
 )
 
 
@@ -44,48 +41,7 @@ def _parse_json_config(path: Path) -> ProjectConfig:
     """Parse JSON config into ProjectConfig."""
     with open(path) as f:
         raw = json.load(f)
-
-    # Thresholds
-    raw_thresh = raw.get("thresholds", {})
-    thresholds = Thresholds(
-        score=float(raw_thresh.get("score", 80.0)),
-        complexity=int(raw_thresh.get("complexity", 10)),
-        max_file_lines=int(raw_thresh.get("max_file_lines", 500)),
-    )
-
-    # Adapters — support both list of strings and list of objects
-    raw_adapters = raw.get("adapters", [])
-    adapters = []
-    for entry in raw_adapters:
-        if isinstance(entry, str):
-            adapters.append(AdapterEntry(name=entry, status=AdapterStatus.ENABLED, weight=1.0))
-        else:
-            status_str = entry.get("status", "enabled")
-            status = AdapterStatus(status_str) if status_str in (
-                "enabled", "disabled", "not_installed"
-            ) else AdapterStatus.ENABLED
-            adapters.append(
-                AdapterEntry(
-                    name=entry["name"],
-                    status=status,
-                    weight=float(entry.get("weight", 1.0)),
-                )
-            )
-
-    # Project name
-    project_name = raw.get("project_name", raw.get("project", {}).get("name", "auto-linter"))
-
-    # Ignored paths / rules
-    ignored_paths = raw.get("ignored_paths", [])
-    ignored_rules = raw.get("ignored_rules", [])
-
-    return ProjectConfig(
-        project_name=project_name,
-        thresholds=thresholds,
-        adapters=adapters,
-        ignored_paths=ignored_paths,
-        ignored_rules=ignored_rules,
-    )
+    return ProjectConfig.from_dict(raw)
 
 
 def load_json_config(start: Path | None = None) -> Optional[ProjectConfig]:

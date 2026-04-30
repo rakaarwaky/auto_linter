@@ -79,22 +79,44 @@ class DesktopCommanderAdapter:
         working_dir: str = ".",
         timeout: Optional[int] = None,
     ) -> dict[str, Any]:
-        """Execute command via the detected protocol."""
-        if self._protocol == "HTTP":
-            return await self._get_http_client().execute(command, working_dir)
-        elif self._protocol == "UnixSocket":
-            return await self._get_unix_client().execute(command, working_dir)
-        else:
+        """Execute command via the detected protocol, falling back if needed."""
+        # If protocol is Unknown or auto_detect is on, use the full fallback chain
+        if self._protocol == "Unknown" or self._auto_detect:
             return await self._execute_auto(command, working_dir)
+            
+        # Otherwise try the detected protocol with a fallback
+        try:
+            if self._protocol == "HTTP":
+                return await self._get_http_client().execute(command, working_dir)
+            elif self._protocol == "UnixSocket":
+                return await self._get_unix_client().execute(command, working_dir)
+        except Exception:
+            # Fall back to auto-detection if the specific protocol fails
+            return await self._execute_auto(command, working_dir)
+            
+        return await self._execute_auto(command, working_dir)
 
     async def _execute_auto(self, command: list[str], working_dir: str) -> dict[str, Any]:
-        """Try Unix Socket first, fallback to HTTP."""
+        """Try Unix Socket first, then HTTP, fallback to Stdio."""
+        # 1. Try Unix Socket
         socket_path = self.url if self.url.startswith("/") else self.DEFAULT_SOCKET
         if Path(socket_path).exists():
-            self._protocol = "UnixSocket"
-            return await self._get_unix_client().execute(command, working_dir)
-        self._protocol = "HTTP"
-        return await self._get_http_client().execute(command, working_dir)
+            try:
+                self._protocol = "UnixSocket"
+                return await self._get_unix_client().execute(command, working_dir)
+            except Exception:
+                pass
+        
+        # 2. Try HTTP
+        try:
+            self._protocol = "HTTP"
+            return await self._get_http_client().execute(command, working_dir)
+        except Exception:
+            pass
+
+        # 3. Fall back to Stdio (direct subprocess)
+        self._protocol = "Stdio"
+        return await self._get_stdio_client().execute(command, working_dir)
 
     async def health_check(self) -> dict[str, Any]:
         """Check DesktopCommander health."""
@@ -110,8 +132,15 @@ class DesktopCommanderAdapter:
         if socket_path.exists():
             self._protocol = "UnixSocket"
             return await self._get_unix_client().health_check()
-        self._protocol = "HTTP"
-        return await self._get_http_client().health_check()
+        
+        # Try HTTP
+        try:
+            self._protocol = "HTTP"
+            return await self._get_http_client().health_check()
+        except Exception:
+            # Fall back to Stdio for health check
+            self._protocol = "Stdio"
+            return await self._get_stdio_client().health_check()
 
     def _get_stdio_client(self) -> StdioClient:
         if self._stdio_client is None:  # pragma: no cover

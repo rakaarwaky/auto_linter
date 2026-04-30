@@ -38,7 +38,7 @@ class PrettierAdapter(ILinterAdapter):
                 if not os.path.isabs(filename):
                     filename = os.path.abspath(filename)
                 if not os.path.exists(filename):
-                    filename = os.path.abspath(filename)
+                    filename = os.path.abspath(path)
 
                 results.append(
                     LintResult(
@@ -77,6 +77,8 @@ class TSCAdapter(ILinterAdapter):
         normalized = normalize_path(path)
         if normalized:
             path = normalized
+        else:
+            path = os.path.abspath(path)
 
         results = []
         try:
@@ -104,7 +106,11 @@ class TSCAdapter(ILinterAdapter):
                     filename_norm = normalize_path(filename)
                     if filename_norm:
                         filename = filename_norm
-                    if not os.path.exists(filename):
+                    
+                    if filename and not os.path.isabs(filename):
+                        filename = os.path.abspath(filename)
+                        
+                    if filename and not os.path.exists(filename):
                         filename = os.path.abspath(filename)
 
                     results.append(
@@ -135,7 +141,11 @@ class ESLintAdapter(ILinterAdapter):
         if os.path.isfile(path) and not path.endswith((".ts", ".tsx", ".js", ".jsx")):
             return []
 
-        path = normalize_path(path)
+        normalized = normalize_path(path)
+        if normalized:
+            path = normalized
+        else:
+            path = os.path.abspath(path)
 
         results = []
         try:
@@ -154,8 +164,11 @@ class ESLintAdapter(ILinterAdapter):
                 if not os.path.isabs(filename):
                     filename = os.path.abspath(filename)
 
-                filename = normalize_path(filename)
-                if not os.path.exists(filename):
+                filename_norm = normalize_path(filename)
+                if filename_norm:
+                    filename = filename_norm
+                
+                if filename and not os.path.exists(filename):
                     filename = os.path.abspath(filename)
 
                 for msg in file_data["messages"]:

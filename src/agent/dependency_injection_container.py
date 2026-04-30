@@ -86,6 +86,7 @@ class Container:
         # === ADAPTERS ===
         vbin = os.path.dirname(sys.executable)
         self.venv_bin = vbin
+        # click.echo(f"Wiring adapters with vbin: {vbin}")
         self.adapters: List[ILinterAdapter] = [
             RuffAdapter(bin_path=vbin),
             MyPyAdapter(bin_path=vbin),
@@ -103,9 +104,14 @@ class Container:
                 layer_map=layer_map
             ),
         ]
+        # click.echo(f"Initialized {len(self.adapters)} adapters.")
 
         # === USE CASES ===
-        self.analysis_use_case = RunAnalysisUseCase(self.adapters, tracers=self.tracers)
+        self.analysis_use_case = RunAnalysisUseCase(
+            self.adapters, 
+            tracers=self.tracers,
+            threshold=config.thresholds.score
+        )
         self.fixes_use_case = ApplyFixesUseCase(self.adapters, tracers=self.tracers)
         self.hook_manager = GitHookManager(root_dir=os.getcwd())
         self.hooks_use_case = HookManagementUseCase(self.hook_manager)

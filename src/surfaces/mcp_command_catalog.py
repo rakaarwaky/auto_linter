@@ -1,5 +1,4 @@
 """MCP Tools: list_commands and read_skill_context."""
-import json
 from pathlib import Path
 
 
@@ -38,38 +37,78 @@ _COMMAND_CATALOG = {
 
 
 async def list_commands(domain: str | None = None):
-    """List all available CLI commands."""
+    """List all available CLI commands with descriptions and examples."""
     if domain:
-        return {domain.lower(): list(sorted(_COMMAND_CATALOG.keys()))}
+        domain_key = domain.lower()
+        commands = {k: v for k, v in _COMMAND_CATALOG.items() if domain_key in k}
+        return {"domain": domain, "commands": commands}
+    
     result = {}
     for command, info in _COMMAND_CATALOG.items():
-        result[command] = {"description": info["description"], "example_usage": info["example"]}
-    return json.dumps(result)
+        result[command] = {
+            "description": info["description"], 
+            "example_usage": info["example"]
+        }
+    return result
 
 
 async def read_skill_context(section: str | None = None):
-    """Read SKILL.md sections for documentation."""
-    # Path: surfaces/mcp_command_catalog.py -> src/ -> auto_linter/ -> SKILL.md
-    skill_path = Path(__file__).resolve().parent.parent.parent / "SKILL.md"
+    """Read SKILL.md documentation sections or the entire file."""
+    root_dir = Path(__file__).resolve().parent.parent.parent
+    skill_path = root_dir / "SKILL.md"
+    
     if not skill_path.exists():
-        return json.dumps({"error": "SKILL.md not found", "path": str(skill_path)})
+        return {"error": "SKILL.md not found", "path": str(skill_path)}
+    
     try:
         content = skill_path.read_text(encoding="utf-8")
-        sections = content.split("## ")
-        if section is None:
-            toc = [{"section": s.split("\n")[0].strip()} for s in sections if s.strip()]
-            return json.dumps({"table_of_contents": toc, "total_sections": len(toc)})
-        section_lower = section.lower()
-        for sec in sections:
-            sec_title = sec.split("\n")[0].strip().lower()
-            if section_lower in sec_title:
-                return json.dumps({"section": sec_title, "content": sec})
-        return json.dumps({
+        
+        # If no section specified, return the WHOLE file as requested
+        if not section or section.lower() in ["all", "full", "entire", "skill.md"]:
+            return {
+                "section": "Full Documentation",
+                "content": content.strip()
+            }
+            
+        lines = content.splitlines()
+        docs = {}
+        current_title = "Introduction"
+        current_section = "introduction"
+        current_content = []
+        
+        for line in lines:
+            if line.startswith("# ") or line.startswith("## "):
+                if current_content:
+                    docs[current_section] = {
+                        "title": current_title,
+                        "body": "\n".join(current_content).strip()
+                    }
+                current_title = line.lstrip("#").strip()
+                current_section = current_title.lower()
+                current_content = [line]
+            else:
+                current_content.append(line)
+        
+        if current_content:
+            docs[current_section] = {
+                "title": current_title,
+                "body": "\n".join(current_content).strip()
+            }
+            
+        query = section.lower()
+        for key, data in docs.items():
+            if query in key:
+                return {
+                    "section": data["title"],
+                    "content": data["body"]
+                }
+                
+        return {
             "error": f"Section '{section}' not found",
-            "available": [s.split("\n")[0].strip() for s in sections if s.strip()]
-        })
+            "available_sections": [d["title"] for d in docs.values()]
+        }
     except Exception as e:
-        return json.dumps({"error": f"Failed to read SKILL.md: {str(e)}"})
+        return {"error": f"Failed to read documentation: {str(e)}"}
 
 
 def register_list_commands(mcp):

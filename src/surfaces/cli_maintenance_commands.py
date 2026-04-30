@@ -1,33 +1,34 @@
-"""Maintenance CLI commands: stats, clean, update, doctor, cancel."""
 import click
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from surfaces.mcp_execute_command import _running_jobs
 
 
 def register_maintenance_commands(cli):
 
   @cli.command()
-  def stats():
+  @click.argument('path', type=click.Path(exists=True), default='.')
+  def stats(path):
     """Show statistics dashboard."""
-    click.echo(" Auto-Linter Statistics")
+    abs_path = os.path.abspath(path)
+    click.echo(f" Auto-Linter Statistics for {abs_path}")
     click.echo("=" * 50)
 
     result = subprocess.run(
-      ['find', '.', '-name', '*.py', '-type', 'f'],
+      ['find', abs_path, '-name', '*.py', '-type', 'f'],
       capture_output=True, text=True
     )
-    py_count = len(result.stdout.strip().split('\n'))
+    py_count = len(result.stdout.strip().split('\n')) if result.stdout.strip() else 0
     click.echo(f" Python files: {py_count}")
 
     result = subprocess.run(
-      ['find', '.', '-name', 'test_*.py', '-type', 'f'],
+      ['find', abs_path, '-name', 'test_*.py', '-type', 'f'],
       capture_output=True, text=True
     )
-    test_count = len(result.stdout.strip().split('\n'))
+    test_count = len(result.stdout.strip().split('\n')) if result.stdout.strip() else 0
     click.echo(f" Test files: {test_count}")
 
     if py_count > 0:
@@ -101,18 +102,40 @@ def register_maintenance_commands(cli):
       click.echo("  Auto-linter not installed")
       issues.append("auto-linter not installed")
 
-    config_file = Path('.json')
-    if config_file.exists():
-      click.echo("  Config file found")
-    else:
-      click.echo("  Config file not found")
+    config_found = False
+    for cfg in ['.auto_linter.json', 'auto_linter.config.yaml', 'pyproject.toml']:
+      path = Path(cfg)
+      if path.exists():
+        if cfg == 'pyproject.toml':
+          with open(path, 'r') as f:
+            if '[tool.auto_linter]' in f.read():
+              click.echo(f"  Config found: {cfg}")
+              config_found = True
+              break
+        else:
+          click.echo(f"  Config found: {cfg}")
+          config_found = True
+          break
+    
+    if not config_found:
+      click.echo("  No config file found")
       issues.append("no config file")
 
     adapters = ['ruff', 'mypy', 'bandit', 'radon']
+    venv_bin = os.path.dirname(sys.executable)
+    
     for adapter in adapters:
-      result = subprocess.run(['which', adapter], capture_output=True)
-      if result.returncode == 0:
-        click.echo(f"  {adapter} found")
+      # Try system path first
+      found = shutil.which(adapter)
+      
+      # Try venv bin if not found in system path
+      if not found:
+          adapter_path = os.path.join(venv_bin, adapter)
+          if os.path.exists(adapter_path):
+              found = adapter_path
+
+      if found:
+        click.echo(f"  {adapter} found at {found}")
       else:
         click.echo(f"  {adapter} not found")
         issues.append(f"{adapter} not installed")
@@ -131,13 +154,11 @@ def register_maintenance_commands(cli):
   @click.argument('job_id')
   def cancel(job_id):
     """Cancel a running lint job."""
-    if job_id not in _running_jobs:
-      click.echo(f"Job '{job_id}' not found")
-      return
-    job_info = _running_jobs[job_id]
-    if job_info["status"] in ("completed", "failed", "cancelled"):
-      click.echo(f"Job already {job_info['status']}")
-      return
-    _running_jobs[job_id]["status"] = "cancelled"
-    _running_jobs[job_id]["completed_at"] = "now"
-    click.echo(f"Job {job_id} cancelled successfully")
+    import asyncio
+    from agent.tracking_job_registry import cancel_job
+    
+    ok = asyncio.run(cancel_job(job_id))
+    if ok:
+      click.echo(f"Job {job_id} cancelled successfully")
+    else:
+      click.echo(f"Could not cancel job {job_id} (not found or already finished)")

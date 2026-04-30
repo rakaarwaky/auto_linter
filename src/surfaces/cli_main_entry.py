@@ -1,4 +1,13 @@
-"""CLI entry point — registers all command groups."""
+import sys
+import logging
+
+# Configure logging to show errors in CLI
+logging.basicConfig(
+    level=logging.ERROR,
+    format='%(levelname)s: %(message)s',
+    stream=sys.stderr
+)
+
 from surfaces.cli_core_commands import cli
 from surfaces.cli_analysis_commands import register_analysis_commands
 from surfaces.cli_dev_commands import register_dev_commands

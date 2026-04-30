@@ -1,6 +1,0 @@
-mcp[cli]
-fastmcp
-pydantic
-ruff
-mypy
-pyre-check

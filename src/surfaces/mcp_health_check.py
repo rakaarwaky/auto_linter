@@ -57,7 +57,7 @@ def register_health_check(mcp):
         # 3. Job Registry
         try:
             from agent.tracking_job_registry import list_jobs
-            jobs = list_jobs()
+            jobs = await list_jobs()
             total = len(jobs)
             running = sum(1 for j in jobs.values() if j.get("status") == "running")
             completed = sum(1 for j in jobs.values() if j.get("status") == "completed")
@@ -75,7 +75,9 @@ def register_health_check(mcp):
 
         # 4. File System Checks
         fs_ok = {}
-        skill_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "SKILL.md")
+        # Path resolution: mcp_health_check.py is in src/surfaces/
+        # Root is two levels up: ../../
+        skill_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "SKILL.md"))
         fs_ok["skill_md"] = os.path.exists(skill_path)
 
         config_path = os.path.join(os.getcwd(), "auto_linter.config.yaml")

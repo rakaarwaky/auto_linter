@@ -13,6 +13,8 @@ def register_analysis_commands(cli):
   @click.argument('path', type=click.Path(exists=True))
   def complexity(path):
     """Run cyclomatic complexity analysis."""
+    if not os.path.isabs(path):
+        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 
@@ -35,6 +37,8 @@ def register_analysis_commands(cli):
   @click.argument('path', type=click.Path(exists=True))
   def duplicates(path):
     """Find code duplication or oversized files."""
+    if not os.path.isabs(path):
+        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 
@@ -56,6 +60,8 @@ def register_analysis_commands(cli):
   @click.argument('path', type=click.Path(exists=True))
   def trends(path):
     """Show quality trends over time."""
+    if not os.path.isabs(path):
+        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 
@@ -77,6 +83,8 @@ def register_analysis_commands(cli):
   @click.option('--exit-zero', is_flag=True, help="Always return exit code 0")
   def ci(path, exit_zero):
     """CI-optimized scan with exit codes."""
+    if not os.path.isabs(path):
+        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
     container = get_container()
     abs_path = os.path.abspath(path)
 
@@ -98,6 +106,10 @@ def register_analysis_commands(cli):
       click.echo("No paths provided.")
       return
 
+    for p in paths:
+        if not os.path.isabs(p):
+            raise click.UsageError(f"All paths in batch must be absolute. Got: '{p}'.")
+
     container = get_container()
     all_passing = True
 
@@ -116,3 +128,27 @@ def register_analysis_commands(cli):
     asyncio.run(_batch())
     if not all_passing:
       sys.exit(1)
+
+  @cli.command()
+  @click.argument('path', type=click.Path(exists=True))
+  def dependencies(path):
+    """Scan for dependency vulnerabilities (pip-audit)."""
+    if not os.path.isabs(path):
+        raise click.UsageError(f"Absolute path required. Got: '{path}'.")
+    container = get_container()
+    abs_path = os.path.abspath(path)
+
+    async def _dependencies():
+      click.echo(f" Scanning for dependency vulnerabilities in {abs_path}...")
+      report = await container.analysis_use_case.execute(abs_path)
+      data = container.analysis_use_case.to_dict(report)
+
+      dep_results = data.get("pip-audit", [])
+      if not dep_results:
+        click.echo(" No dependency vulnerabilities found.")
+      else:
+        click.echo(f" Found {len(dep_results)} vulnerable packages.")
+        for res in dep_results:
+          click.echo(f" - {res['message']} (Severity: {res['severity']})")
+
+    asyncio.run(_dependencies())

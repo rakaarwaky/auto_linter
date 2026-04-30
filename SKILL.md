@@ -1,310 +1,74 @@
 ---
-name: auto-linter
-description: MCP server for autonomous linting and governance auditing - FOR AI AGENTS.
-version: 1.0.0
+version: 1.6.0
 ---
 # Auto Linter Skill
 
-> **This SKILL is designed FOR AI AGENTS.**
-> 
-> Humans: use CLI `auto-lint` instead.
+> **GUIDE FOR AI AGENTS.**
+> Humans: Use the `auto-lint` CLI directly in the terminal.
 
-MCP server for autonomous, multi-language linting and architectural governance auditing. Built specifically for AI agents to:
-- Execute quality checks autonomously
-- Auto-fix issues without human intervention  
-- Coordinate with other agents
-- Enforce architectural rules 24/7
+MCP Server for autonomous multi-language linting and architectural governance audits.
 
-## Why AI Agents Use auto_linter
+## Key Features
+- **Multi-Linter**: Runs Ruff, MyPy, Bandit, Radon, pip-audit, ESLint, Prettier, and TSC in a single command.
+- **Governance Audit**: Enforces architectural rules (e.g., "Surfaces are prohibited from importing Infrastructure").
+- **Auto-Fix**: Automatically fixes code style issues (linting) without intervention.
+- **Reporting**: Generates quality scores (0-100) and reports in JSON/SARIF/JUnit formats.
+- **Hot Reload**: Supports live server code updates during development.
 
-| Feature                | Benefit for Agent                         |
-| ---------------------- | ----------------------------------------- |
-| **5 MCP Tools**  | Complete control via execute_command      |
-| **Job Tracking** | Never lose track of lint progress         |
-| **Auto-Fix**     | Automatically fix 80% of issues           |
-| **Retry Logic**  | Built-in resilience for failures          |
-| **Governance**   | Enforce architectural rules automatically |
-
-## Install
-
-```bash
-pip install auto-linter
-```
-
-For Hermes users: `auto-lint setup hermes`
+## Agent Workflow (Recommended)
+1. `list_commands()` — Discover available commands.
+2. `execute_command("check", {"path": "src/"})` — Run a quality audit.
+3. `execute_command("fix", {"path": "src/"})` — Fix issues automatically.
+4. `execute_command("report", {"path": "src/", "output-format": "json"})` — Retrieve detailed data.
 
 ## MCP Tools (5 tools)
 
-### `execute_command(action: str, args: dict | None)`
+### `execute_command(action, args)`
+Execute any CLI command. This is the primary tool.
+Example actions: check, fix, report, security, complexity, dependencies, setup, doctor.
 
-Execute any CLI command via DesktopCommander pipeline. This is the primary tool.
+### `list_commands(domain)`
+Lists all available CLI commands along with examples.
 
-```json
-{"action": "check", "args": {"path": "./src/"}}
-{"action": "fix", "args": {"path": "./src/"}}
-{"action": "report", "args": {"path": "./src/", "format": "json"}}
-{"action": "security", "args": {"path": "./src/"}}
-{"action": "complexity", "args": {"path": "./src/"}}
-```
+### `read_skill_context(section)`
+Read this SKILL.md documentation by section or in its entirety.
 
-All CLI commands are accessible through this tool.
-
-### `list_commands(domain: str | None)`
-
-List all available CLI commands with descriptions and examples.
-
-```json
-{ "domain": null }
-```
-
-Returns: `{"check": {"description": "...", "example_usage": "auto-lint check /path"}, ...}`
-
-### `read_skill_context(section: str | None)`
-
-Read SKILL.md documentation sections.
-
-```json
-{ "section": "mcp tools" }
-```
-
-### `check_status(job_id: str | None)`
-
-Check status of running lint jobs.
-
-```json
-{ "job_id": "abc12345" }
-```
-
-> **Note**: To cancel a job, use CLI: `auto-lint cancel <job_id>`
+### `check_status(job_id)`
+Check the status of long-running linting jobs.
 
 ### `health_check()`
+Check system health: adapters, transport, and DesktopCommander connection.
 
-Check DesktopCommander and transport health status.
-
-Returns: `{"status": "...", "protocol": "...", ...}`
-
-## Recommended Agent Workflow
-
-```
-1. list_commands()              — discover available commands
-2. execute_command("check", {"path": "./src/"})  — run lint
-3. execute_command("fix", {"path": "./src/"})    — auto-fix
-4. execute_command("check", {"path": "./src/"})  — verify
-```
-
-## CLI Commands Reference
+## CLI Command List (auto-lint)
 
 ### Core
-
-| Command                                   | Description                                     |
-| ----------------------------------------- | ----------------------------------------------- |
-| `auto-lint check <path>`                | Run all linters, check governance score         |
-| `auto-lint scan <path>`                 | Alias for check (CI-friendly)                   |
-| `auto-lint fix <path>`                  | Apply safe fixes automatically                  |
-| `auto-lint report <path> --format json` | Generate quality report (text/json/sarif/junit) |
-| `auto-lint ci <path>`                   | CI mode with exit codes                         |
+- `auto-lint check <path>`: Run all linters and calculate score.
+- `auto-lint scan <path>`: Alias for check (CI-friendly).
+- `auto-lint fix <path>`: Apply safe automatic fixes.
+- `auto-lint report <path> --output-format json`: Generate detailed quality reports.
+- `auto-lint ci <path>`: CI mode (exit code 1 if score < threshold).
 
 ### Scans
+- `auto-lint security <path>`: Scan for vulnerabilities using Bandit.
+- `auto-lint complexity <path>`: Cyclomatic complexity analysis (Radon).
+- `auto-lint duplicates <path>`: Detect code duplication or SRP violations.
+- `auto-lint trends <path>`: Monitor quality trends over time.
+- `auto-lint dependencies <path>`: Scan for library vulnerabilities (pip-audit).
 
-| Command                           | Description                    |
-| --------------------------------- | ------------------------------ |
-| `auto-lint security <path>`     | Bandit vulnerability scan      |
-| `auto-lint complexity <path>`   | Cyclomatic complexity analysis |
-| `auto-lint duplicates <path>`   | Code duplication detection     |
-| `auto-lint trends <path>`       | Quality trends over time       |
-| `auto-lint dependencies <path>` | Dependency vulnerability scan  |
-
-### Setup
-
-| Command                        | Description                    |
-| ------------------------------ | ------------------------------ |
-| `auto-lint setup init`       | Auto-configure environment     |
-| `auto-lint setup hermes`     | Auto-install into Hermes Agent |
-| `auto-lint setup doctor`     | Diagnose issues                |
-| `auto-lint setup mcp-config` | Print MCP config for clients   |
+### Setup & Maintenance
+- `auto-lint setup doctor`: Diagnose environment health and linter binaries.
+- `auto-lint setup init`: Automatic environment configuration.
+- `auto-lint setup mcp-config`: Print MCP configuration for clients.
+- `auto-lint adapters`: List all active linters.
+- `auto-lint version`: Show current version (1.6.0).
+- `auto-lint config show`: View active configuration (YAML).
 
 ### Dev
+- `auto-lint watch <path>`: Monitor files and run lint automatically on changes.
+- `auto-lint suggest <path>`: Provide improvement suggestions (can use --ai).
+- `auto-lint install-hook`: Install git pre-commit hook.
+- `auto-lint uninstall-hook`: Remove git pre-commit hook.
 
-| Command                               | Description                                 |
-| ------------------------------------- | ------------------------------------------- |
-| `auto-lint diff <path1> <path2>`    | Compare lint results between two versions   |
-| `auto-lint suggest <path>`          | AI-powered fix suggestions (--ai flag)      |
-| `auto-lint config show\|edit\|reset`  | View, edit, or reset configuration settings |
-| `auto-lint export sarif\|junit\|json` | Export lint reports to file (-o output)     |
-| `auto-lint import <config.json>`    | Import configurations from file             |
-| `auto-lint ignore <rule>`           | Manage ignore rules (--remove to delete)    |
-| `auto-lint init`                    | Initialize a new Auto-Linter configuration  |
-| `auto-lint install-hook`            | Install git pre-commit hook                 |
-| `auto-lint uninstall-hook`          | Remove git pre-commit hook                  |
-
-### Maintenance
-
-| Command                       | Description               |
-| ----------------------------- | ------------------------- |
-| `auto-lint cancel <job_id>` | Cancel a running lint job |
-| `auto-lint stats <path>`    | Statistics dashboard      |
-| `auto-lint clean`           | Cleanup cache             |
-| `auto-lint update`          | Update adapters           |
-| `auto-lint doctor`          | Diagnose issues           |
-| `auto-lint version`         | Show version              |
-| `auto-lint adapters`        | List enabled linters      |
-
-### Other
-
-| Command                             | Description                       |
-| ----------------------------------- | --------------------------------- |
-| `auto-lint watch <path>`          | Watch files, auto-lint on changes |
-| `auto-lint batch <p1> <p2>`       | Check multiple paths              |
-| `auto-lint plugins`               | List discovered plugins           |
-| `auto-lint multi-project <paths>` | Lint multiple projects, aggregate |
-
-## Transport
-
-Connects to DesktopCommander for command execution. Auto-detected: socket -> http -> stdio.
-
-```
-DESKTOP_COMMANDER_URL              Mode             Requires
-──────────────────────────────────────────────────────────────
-/run/desktop-commander/socket      Unix Socket      DesktopCommander
-http://localhost:24680/execute     HTTP             HTTP wrapper
-auto (default)                     Auto-detect      tries socket -> http -> stdio
-```
-
-Default socket: `/run/desktop-commander/socket`
-
-## Adapters
-
-| Adapter    | Language   | Weight | Notes                |
-| ---------- | ---------- | ------ | -------------------- |
-| ruff       | Python     | 1.0    | Formatting + linting |
-| mypy       | Python     | 1.0    | Type checking        |
-| bandit     | Python     | 1.0    | Security scanning    |
-| radon      | Python     | 1.0    | Complexity metrics   |
-| eslint     | JS/TS      | 1.0    | Linting              |
-| prettier   | JS/TS      | 0.5    | Formatting           |
-| tsc        | TypeScript | 1.0    | Type checking        |
-| governance | All        | 1.0    | Architecture rules   |
-
-## Configuration
-
-### .env (optional)
-
-```bash
-DESKTOP_COMMANDER_URL=/run/desktop-commander/socket
-PHANTOM_ROOT=$HOME/
-```
-
-### auto_linter.config.yaml (optional)
-
-```yaml
-thresholds:
-  score: 80.0
-  complexity: 10
-  max_file_lines: 500
-```
-
----
-
-## Governance Rules (Architecture Enforcement)
-
-Governance rules are **configurable** - by default empty, but you can define rules for your architecture.
-
-### AES Architecture (Auto-Linter's Own)
-
-```yaml
-# AES = Agent, Capabilities, Surfaces, Taxonomy, Infrastructure
-layer_map:
-  agent: agent
-  capabilities: capabilities
-  surfaces: surfaces
-  taxonomy: taxonomy
-  infrastructure: infrastructure
-
-governance_rules:
-  - from: surfaces
-    to: infrastructure
-    description: "Surface must not import Infrastructure directly"
-  - from: capabilities
-    to: infrastructure
-    description: "Capabilities must not import Infrastructure (use Taxonomy)"
-  - from: capabilities
-    to: surfaces
-    description: "Capabilities must not import Surface"
-  - from: infrastructure
-    to: surfaces
-    description: "Infrastructure must not import Surface"
-```
-
-### Clean Architecture (Uncle Bob)
-
-```yaml
-layer_map:
-  entities: entities
-  usecases: usecases
-  interfaces: interfaces
-  frameworks: frameworks
-
-governance_rules:
-  - from: entities
-    to: usecases
-    description: "Entities should not know Use Cases"
-  - from: usecases
-    to: interfaces
-    description: "Use Cases must not know Framework details"
-```
-
-### Hexagonal Architecture (Ports & Adapters)
-
-```yaml
-layer_map:
-  domain: domain
-  application: application
-  ports: ports
-  adapters: adapters
-
-governance_rules:
-  - from: domain
-    to: application
-    description: "Domain should not depend on Application"
-  - from: domain
-    to: adapters
-    description: "Domain should not depend on Adapters"
-  - from: adapters
-    to: domain
-    description: "Adapters must use Ports to access Domain"
-```
-
-### Onion Architecture
-
-```yaml
-layer_map:
-  core: core
-  application: application
-  infrastructure: infrastructure
-
-governance_rules:
-  - from: core
-    to: application
-    description: "Core must not know Application layer"
-  - from: core
-    to: infrastructure
-    description: "Core must not know Infrastructure"
-```
-
-### DDD (Domain-Driven Design)
-
-```yaml
-layer_map:
-  domain: domain
-  application: application
-  infrastructure: infrastructure
-  interfaces: interfaces
-
-governance_rules:
-  - from: domain
-    to: infrastructure
-    description: "Domain must not depend on Infrastructure"
-  - from: domain
-    to: application
-    description: "Domain should be framework-agnostic"
-```
+## Architectural Rules (Governance)
+Architectural audits are configured in `auto_linter.config.yaml` through `layer_map` and `governance_rules`.
+Each violation will drastically reduce the quality score (Critical = -50 points).

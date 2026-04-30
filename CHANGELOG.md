@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.0 (2026-04-30) — CI/CD Modernization
+
+### CI/CD & Automation
+
+- **Modernized GitHub Workflows** — Implemented OIDC (Trusted Publishing) for PyPI security.
+- **Build Provenance** — Added SLSA attestations for supply chain security.
+- **Dogfooding CI** — Refactored CI pipeline to use `auto-lint ci` for self-validation.
+- **Enhanced Caching** — Optimized pip caching in GitHub Actions.
+
 ## 1.5.0 (2026-04-13) — Stable Release
 
 ### Quality

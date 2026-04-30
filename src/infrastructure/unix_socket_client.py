@@ -40,31 +40,51 @@ class UnixSocketClient:
             sock.sendall(request_json)
 
             response_data = b""
-            sock.settimeout(5.0)
+            sock.settimeout(self.timeout)
+            
+            # Read until we have a complete JSON object
+            # For simplicity, we assume one JSON object per response
             while True:
                 try:
-                    chunk = sock.recv(4096)
+                    chunk = sock.recv(8192)
                     if not chunk:
                         break
                     response_data += chunk
-                    try:
-                        return json.loads(response_data.decode("utf-8"))
-                    except json.JSONDecodeError:
-                        continue
+                    
+                    # Optimization: Only try to parse if it looks like it might be finished
+                    # (ends with newline or closing brace)
+                    stripped = response_data.strip()
+                    if stripped.endswith(b"}"):
+                        try:
+                            return json.loads(stripped.decode("utf-8"))
+                        except json.JSONDecodeError:
+                            # Still incomplete or nested braces, keep reading
+                            pass
                 except socket.timeout:
-                    break
+                    # If we have some data, try to parse it before giving up
+                    if response_data:
+                        break
+                    raise
 
+            # Final attempt
             try:
                 return json.loads(response_data.decode("utf-8"))
             except json.JSONDecodeError as e:
                 return {
                     "stdout": "",
-                    "stderr": f"Failed to parse response: {e}",
+                    "stderr": f"Failed to parse response: {e}. Data received: {len(response_data)} bytes",
                     "returncode": 1,
                     "executed_by": "DesktopCommanderMCP",
                     "error": "Invalid response format",
                 }
         except socket.error as e:
+            # Clear socket on error to force reconnect next time
+            if self._socket:
+                try:
+                    self._socket.close()
+                except:
+                    pass
+                self._socket = None
             return {
                 "stdout": "",
                 "stderr": f"Socket error: {e}",

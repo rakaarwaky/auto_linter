@@ -28,14 +28,18 @@ class TestCliMainEntry:
 
     def test_main_entry_as_module(self):
         """Cover line 23: run module directly to trigger if __name__ == '__main__'."""
+        import os
+        # Use venv python or skip - go up 2 levels from end-to-end/
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(test_dir))
+        venv_python = os.path.join(project_root, '.venv', 'bin', 'python')
+        if not os.path.exists(venv_python):
+            pytest.skip("No venv")
+        
         result = subprocess.run(
-            [sys.executable, "-m", "surfaces.cli_main_entry", "--help"],
-            capture_output=True, text=True, cwd=os.path.join(
-                os.path.dirname(__file__), "..", "src"
-            ),
-            env={**os.environ, "PYTHONPATH": os.path.join(
-                os.path.dirname(__file__), "..", "src"
-            )},
+            [venv_python, "-m", "surfaces.cli_main_entry", "--help"],
+            capture_output=True, text=True, cwd=os.path.join(project_root, "src"),
+            env={**os.environ, "PYTHONPATH": os.path.join(project_root, "src")},
             timeout=10,
         )
         # Module runs without crash

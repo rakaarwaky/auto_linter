@@ -17,43 +17,140 @@ def cli():
 @click.option('--git-diff', is_flag=True, help='Only lint files changed in this branch (vs main/master)')
 def check(path, git_diff):
   """Run all linters and check governance score."""
+  if not os.path.isabs(path):
+    raise click.UsageError(f"Absolute path required. Got: '{path}'. AI Agents must provide full paths starting with '/'.")
+  
   container = get_container()
   abs_path = os.path.abspath(path)
 
-  # Git diff awareness: only lint changed files
   if git_diff:
     import subprocess
     try:
-      # Get list of changed files compared to main/master
-      result = subprocess.run(
-        ['git', 'diff', '--name-only', 'origin/main...HEAD', 'HEAD...origin/main', 'main...HEAD', 'master...HEAD'],
-        capture_output=True, text=True, cwd=abs_path, timeout=30
-      )
+      # Get default branch name dynamically
+      default_branch = "main"
+      try:
+        branch_result = subprocess.run(
+          ['git', 'symbolic-ref', 'refs/remotes/origin/HEAD'],
+          capture_output=True, text=True, cwd=abs_path, timeout=10
+        )
+        if branch_result.returncode == 0:
+          # refs/remotes/origin/HEAD -> refs/remotes/origin/main
+          ref = branch_result.stdout.strip()
+          if '/' in ref:
+            default_branch = ref.split('/')[-1]
+        else:
+          # Fallback: try to detect from remote
+          remote_result = subprocess.run(
+            ['git', 'remote', 'show', 'origin'],
+            capture_output=True, text=True, cwd=abs_path, timeout=10
+          )
+          for line in remote_result.stdout.split('\n'):
+            if 'HEAD branch:' in line:
+              default_branch = line.split(':')[1].strip()
+              break
+      except Exception:
+        pass
+
+      # Get list of changed files compared to default branch
       changed_files = []
-      for line in result.stdout.strip().split('\n'):
-        if line.strip() and not line.startswith(' '):
-          changed_files.append(line.strip())
-      
+      for variant in [f'origin/{default_branch}...HEAD', 
+                      f'HEAD...origin/{default_branch}', 
+                      f'{default_branch}...HEAD',
+                      'master...HEAD']:
+        result = subprocess.run(
+          ['git', 'diff', '--name-only', variant],
+          capture_output=True, text=True, cwd=abs_path, timeout=30
+        )
+        if result.returncode == 0:
+          for line in result.stdout.strip().split('\n'):
+            if line.strip() and not line.startswith(' '):
+              changed_files.append(line.strip())
+          if changed_files:
+            break
+
+      # Fallback: just use current changes
       if not changed_files:
-        # Fallback: try just --name-only
         result = subprocess.run(
           ['git', 'diff', '--name-only', 'HEAD'],
           capture_output=True, text=True, cwd=abs_path, timeout=30
         )
         changed_files = [line.strip() for line in result.stdout.strip().split('\n') if line.strip()]
-      
+        
+      if not changed_files:
+        # Absolute last resort: list all modified/new files
+        result = subprocess.run(
+          ['git', 'ls-files', '--modified', '--others', '--exclude-standard'],
+          capture_output=True, text=True, cwd=abs_path, timeout=30
+        )
+        changed_files = [line.strip() for line in result.stdout.strip().split('\n') if line.strip()]
+        
       if changed_files:
         click.echo(f"Git diff mode: Checking {len(changed_files)} changed file(s)...")
-        # Filter path to only include changed files
-        abs_path = ' '.join(changed_files) if len(changed_files) <= 5 else changed_files[0]
-        # Check only first few files for display
+        # Process each changed file individually
         for f in changed_files[:5]:
           click.echo(f"  + {f}")
         if len(changed_files) > 5:
           click.echo(f"  ... and {len(changed_files) - 5} more")
+        
+        # Process all changed files
+        async def _check_all():
+          total_results = {"score": 100.0, "is_passing": True}
+          all_data = []
+          for cf in changed_files:
+            try:
+              cf_abs = os.path.join(abs_path, cf)
+              report = await container.analysis_use_case.execute(cf_abs)
+              data = container.analysis_use_case.to_dict(report)
+              all_data.append((cf, data))
+              if data.get("is_passing") == False:
+                total_results["is_passing"] = False
+            except Exception as e:
+              click.echo(f"  Error processing {cf}: {e}")
+          
+          # Aggregate scores
+          if all_data:
+            avg_score = sum(d[1].get("score", 0) for d in all_data) / len(all_data)
+            total_results["score"] = round(avg_score, 1)
+            total_results["files"] = len(all_data)
+            
+            # Collect all issues
+            for cf, data in all_data:
+              for source, results in data.items():
+                if source in ["score", "summary", "is_passing", "governance"]:
+                  continue
+                if not isinstance(results, list):
+                  continue
+                if source not in total_results:
+                  total_results[source] = []
+                for res in results:
+                  res_copy = dict(res)
+                  res_copy["file"] = cf
+                  total_results[source].append(res_copy)
+          
+          return total_results
+        
+        async def _check():
+          data = await _check_all()
+          click.echo(f"Score: {data['score']:.1f}/100.0")
+          for source, results in data.items():
+            if source in ["score", "summary", "is_passing", "files"]:
+              continue
+            if not isinstance(results, list):
+              continue
+            status = " CLEAN" if not results else f" {len(results)} ISSUES"
+            click.echo(f"[{source}] {status}")
+            for res in results[:5]:
+              click.echo(f" - {res['file']}:{res['line']} {res['code']}: {res['message']}")
+            if len(results) > 5:
+              click.echo(f" ... and {len(results)-5} more")
+        
+        asyncio.run(_check())
+        return
+
     except Exception as e:
       click.echo(f"Warning: Could not get git diff: {e}")
 
+  # Normal (non-git-diff) check path
   async def _check():
     click.echo(f" Running analysis on {abs_path}...")
     report = await container.analysis_use_case.execute(abs_path)
@@ -61,7 +158,7 @@ def check(path, git_diff):
 
     click.echo(f"Score: {data['score']:.1f}/100.0")
     for source, results in data.items():
-      if source in ["score", "summary", "is_passing", "governance"]:
+      if source in ["score", "summary", "is_passing"]:
         continue
       if not isinstance(results, list):
         continue  # pragma: no cover
@@ -77,10 +174,11 @@ def check(path, git_diff):
 
 
 @cli.command()
-@click.argument('path', type=click.Path(exists=True), default='.')
-@click.option('--git-diff', is_flag=True, help='Only lint files changed in this branch')
-def scan(path, git_diff):
+@click.argument('path', type=click.Path(exists=True))
+def scan(path):
   """Full deep scan of a directory (alias for check)."""
+  if not os.path.isabs(path):
+    raise click.UsageError(f"Absolute path required. Got: '{path}'.")
   ctx = click.get_current_context()
   ctx.invoke(check, path=path)
 
@@ -89,6 +187,8 @@ def scan(path, git_diff):
 @click.argument('path', type=click.Path(exists=True))
 def fix(path):
   """Apply safe fixes automatically (Ruff, ESLint, Prettier)."""
+  if not os.path.isabs(path):
+    raise click.UsageError(f"Absolute path required. Got: '{path}'.")
   container = get_container()
   abs_path = os.path.abspath(path)
 
@@ -105,6 +205,8 @@ def fix(path):
 @click.option('--output-format', type=click.Choice(['text', 'json', 'sarif', 'junit']), default='text')
 def report(path, output_format):
   """Generate a detailed quality report."""
+  if not os.path.isabs(path):
+    raise click.UsageError(f"Absolute path required. Got: '{path}'.")
   container = get_container()
   abs_path = os.path.abspath(path)
 
@@ -140,7 +242,7 @@ def report(path, output_format):
 @cli.command()
 def version():
   """Show version information."""
-  click.echo("Auto-Linter v1.5.0 (AES Semantic Builder)")
+  click.echo("Auto-Linter v1.6.0 (AES Semantic Builder)")
 
 
 @cli.command()

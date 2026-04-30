@@ -7,12 +7,15 @@ from pathlib import Path
 from typing import Optional
 
 import yaml  # type: ignore[import-untyped]
+try:
+    import tomllib  # Python 3.11+
+except ImportError:
+    import tomli as tomllib  # type: ignore[no-redef]
 from dotenv import load_dotenv
 
 from taxonomy import (
     ProjectConfig,
     Thresholds,
-    AdapterEntry,
     AdapterStatus,
 )
 from infrastructure.config_json_provider import load_json_config
@@ -27,17 +30,15 @@ class AppConfig:
         desktop_commander_url: str = "auto",
         desktop_commander_timeout: float = 300.0,
         # ── Paths (.env) ──
-        phantom_root: str = "/home/raka/src/",
+        phantom_root: str = "",
         project_root: str = "",
         # ── Project (YAML) ──
         project: ProjectConfig | None = None,
     ):
         self.desktop_commander_url = desktop_commander_url
         self.desktop_commander_timeout = desktop_commander_timeout
-        self.phantom_root = phantom_root
-        self.project_root = project_root or str(
-            Path(__file__).resolve().parent.parent / "src"
-        )
+        self.phantom_root = phantom_root or os.path.expanduser("~")
+        self.project_root = project_root or os.getcwd()
         self.project = project or ProjectConfig.defaults()
 
     # ── Thresholds shortcut ──
@@ -107,56 +108,44 @@ def _find_yaml_config(start: Path | None = None) -> Optional[Path]:
     return None
 
 
+def _find_toml_config(start: Path | None = None) -> Optional[Path]:
+    """Find pyproject.toml config file walking up from start."""
+    current = start or Path.cwd()
+    for _ in range(5):
+        candidate = current / "pyproject.toml"
+        if candidate.is_file():
+            # Check if it has [tool.auto_linter] section
+            try:
+                with open(candidate, "rb") as f:
+                    data = tomllib.load(f)
+                    if "tool" in data and "auto_linter" in data["tool"]:
+                        return candidate
+            except Exception:
+                pass
+        if current.parent == current:
+            break
+        current = current.parent
+    return None
+
+
+def _parse_dict_config(raw: dict) -> ProjectConfig:
+    """Parse a raw dictionary into ProjectConfig."""
+    return ProjectConfig.from_dict(raw)
+
+
 def _parse_yaml_config(path: Path) -> ProjectConfig:
     """Parse YAML config into ProjectConfig."""
     with open(path) as f:
         raw = yaml.safe_load(f) or {}
+    return ProjectConfig.from_dict(raw)
 
-    # Thresholds
-    raw_thresh = raw.get("thresholds", {})
-    thresholds = Thresholds(
-        score=float(raw_thresh.get("score", 80.0)),
-        complexity=int(raw_thresh.get("complexity", 10)),
-        max_file_lines=int(raw_thresh.get("max_file_lines", 500)),
-    )
 
-    # Adapters
-    raw_adapters = raw.get("adapters", [])
-    adapters = []
-    for entry in raw_adapters:
-        status_str = entry.get("status", "enabled")
-        status = AdapterStatus(status_str) if status_str in (
-            "enabled", "disabled", "not_installed"
-        ) else AdapterStatus.ENABLED
-        adapters.append(
-            AdapterEntry(
-                name=entry["name"],
-                status=status,
-                weight=float(entry.get("weight", 1.0)),
-            )
-        )
-
-    # Project name
-    raw_project = raw.get("project", {})
-    project_name = raw_project.get("name", "auto-linter")
-
-    # Ignored paths / rules
-    ignored_paths = raw.get("ignored_paths", [])
-    ignored_rules = raw.get("ignored_rules", [])
-
-    # Governance & Layers
-    governance_rules = raw.get("governance_rules", [])
-    layer_map = raw.get("layer_map", {})
-
-    return ProjectConfig(
-        project_name=project_name,
-        thresholds=thresholds,
-        adapters=adapters,
-        ignored_paths=ignored_paths,
-        ignored_rules=ignored_rules,
-        governance_rules=governance_rules,
-        layer_map=layer_map,
-    )
+def _parse_toml_config(path: Path) -> ProjectConfig:
+    """Parse TOML config from pyproject.toml."""
+    with open(path, "rb") as f:
+        data = tomllib.load(f)
+    raw = data.get("tool", {}).get("auto_linter", {})
+    return ProjectConfig.from_dict(raw)
 
 
 # ── Singleton ──
@@ -184,18 +173,22 @@ def load_config(
         if found_env:
             load_dotenv(found_env, override=False)
 
-    # 2. Load config — JSON takes priority over YAML
+    # 2. Load config — Priority: .auto_linter.json > pyproject.toml > auto_linter.config.yaml
     json_config = load_json_config()
     if json_config:
         yaml_config = json_config
-    elif yaml_path:
-        yaml_config = _parse_yaml_config(Path(yaml_path))
     else:
-        found_yaml = _find_yaml_config()
-        if found_yaml:
-            yaml_config = _parse_yaml_config(found_yaml)
+        found_toml = _find_toml_config()
+        if found_toml:
+            yaml_config = _parse_toml_config(found_toml)
+        elif yaml_path:
+            yaml_config = _parse_yaml_config(Path(yaml_path))
         else:
-            yaml_config = ProjectConfig.defaults()
+            found_yaml = _find_yaml_config()
+            if found_yaml:
+                yaml_config = _parse_yaml_config(found_yaml)
+            else:
+                yaml_config = ProjectConfig.defaults()
 
     # 3. Build AppConfig from env + YAML
     _config = AppConfig(
@@ -205,8 +198,8 @@ def load_config(
         desktop_commander_timeout=float(
             os.environ.get("DESKTOP_COMMANDER_TIMEOUT", "300")
         ),
-        phantom_root=os.environ.get("PHANTOM_ROOT", "/home/raka/src/"),
-        project_root=os.environ.get("PROJECT_ROOT", ""),
+        phantom_root=os.environ.get("PHANTOM_ROOT", os.path.expanduser("~")),
+        project_root=os.environ.get("PROJECT_ROOT", os.getcwd()),
         project=yaml_config,
     )
     return _config

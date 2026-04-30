@@ -112,24 +112,32 @@ class GovernanceAdapter(ILinterAdapter):
 
     def _detect_layer(self, module_path: str, layer_map: dict) -> Optional[str]:
         """
-        Given a dotted module path like 'src.infrastructure.adapters.python',
-        return the AES layer name or None if unknown.
+        Given a dotted module path like 'src.infrastructure.adapters',
+        return the AES layer name (key from layer_map).
         """
         parts = module_path.split(".")
         for part in parts:
-            if part in layer_map:
-                return layer_map[part]
+            # Check if part matches any layer name or any component of a layer path
+            for name, path in layer_map.items():
+                path_parts = path.replace("\\", "/").split("/")
+                if part == name or part in path_parts:
+                    return name
         return None
 
     def _detect_file_layer(self, file_path: str, root_dir: str, layer_map: dict) -> Optional[str]:
         """
         Derive the AES layer of a file from its path relative to the source root.
         """
-        rel = os.path.relpath(file_path, root_dir)
-        parts = rel.replace("\\", "/").split("/")
-        for part in parts:
-            if part in layer_map:
-                return layer_map[part]
+        try:
+            rel = os.path.relpath(file_path, root_dir).replace("\\", "/")
+            # Check which layer path this file belongs to
+            # Sort by path length descending to match most specific path first
+            sorted_layers = sorted(layer_map.items(), key=lambda x: len(x[1]), reverse=True)
+            for name, path in sorted_layers:
+                if rel.startswith(path.strip("/")) or f"/{path.strip('/')}/" in f"/{rel}/":
+                    return name
+        except Exception:
+            pass
         return None
 
     def scan(self, path: str) -> List[LintResult]:

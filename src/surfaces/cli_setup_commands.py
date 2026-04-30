@@ -1,5 +1,6 @@
 """CLI setup commands — init, doctor, mcp-config."""
 import json
+import os
 import platform
 import shutil
 from pathlib import Path
@@ -104,11 +105,18 @@ def doctor():
             click.echo(f"[!!] {pkg} — MISSING")
 
     # Check linters
+    import sys
+    venv_bin = os.path.dirname(sys.executable)
     for name in ["ruff", "mypy"]:
-        if shutil.which(name):
-            click.echo(f"[OK] {name}")
+        # Check PATH first, then check venv_bin
+        bin_at_path = shutil.which(name)
+        bin_at_venv = shutil.which(name, path=venv_bin)
+        
+        if bin_at_path or bin_at_venv:
+            path = bin_at_path or bin_at_venv
+            click.echo(f"[OK] {name} ({path})")
         else:
-            click.echo(f"[--] {name} — not installed (optional)")  # pragma: no cover
+            click.echo(f"[--] {name} — not installed (optional)")
 
     # Check DesktopCommander
     dc_socket = Path("/tmp/dc.sock")

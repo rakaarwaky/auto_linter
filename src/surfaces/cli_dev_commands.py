@@ -72,17 +72,18 @@ def register_dev_commands(cli):
   @cli.command()
   @click.argument('rule')
   @click.option('--remove', is_flag=True, help='Remove rule from ignore list')
-  @click.option('--path', default='.json', help='Config file path')
+  @click.option('--path', default='auto_linter.config.yaml', help='Config file path')
   def ignore(rule, remove, path):
     """Manage ignore rules in configuration."""
     config_file = Path(path)
 
     if not config_file.exists():
       click.echo(f" Config file not found: {path}")
-      click.echo("Run 'auto-lint init' first")
+      click.echo("Run 'auto-lint setup init' first")
       return
 
-    config = json.loads(config_file.read_text())
+    import yaml
+    config = yaml.safe_load(config_file.read_text())
 
     if 'ignored_rules' not in config:
       config['ignored_rules'] = []
@@ -100,27 +101,23 @@ def register_dev_commands(cli):
       else:
         click.echo(f" '{rule}' already ignored")
 
-    config_file.write_text(json.dumps(config, indent=2))
+    config_file.write_text(yaml.dump(config, sort_keys=False))
 
   @cli.command()
   @click.argument('action', type=click.Choice(['show', 'edit', 'reset']))
-  @click.option('--path', default='.json', help='Config file path')
+  @click.option('--path', default='auto_linter.config.yaml', help='Config file path')
   def config(action, path):
     """Edit configuration settings."""
     config_file = Path(path)
 
     if action == 'show':
       if not config_file.exists():
-        click.echo(" Config not found. Run 'auto-lint init'")
+        click.echo(" Config not found. Run 'auto-lint setup init'")
         return
       click.echo(config_file.read_text())
 
     elif action == 'edit':
       editor = os.environ.get('EDITOR', 'nano')
-      editor_base = os.path.basename(editor)
-      allowed_editors = {'vim', 'nano', 'emacs', 'code', 'nvim', 'vi'}
-      if editor_base not in allowed_editors:
-        click.echo(f" Unknown editor '{editor_base}', opening anyway...")
       subprocess.run([editor, str(config_file)])
       click.echo(" Config saved")
 
@@ -129,10 +126,11 @@ def register_dev_commands(cli):
         default_config = {
           "project_name": "auto-linter",
           "thresholds": {"score": 80.0, "complexity": 10},
-          "adapters": ["ruff", "mypy", "bandit", "radon"],
+          "adapters": ["ruff", "mypy", "bandit", "radon", "pip-audit", "governance"],
           "ignored_paths": ["node_modules", ".venv", "dist", "build"]
         }
-        config_file.write_text(json.dumps(default_config, indent=2))
+        import yaml
+        config_file.write_text(yaml.dump(default_config, sort_keys=False))
         click.echo(" Config reset to defaults")
 
   @cli.command()
@@ -168,7 +166,7 @@ def register_dev_commands(cli):
   @click.option('--path', default='.', help='Project root directory')
   def init(path):
     """Initialize a new Auto-Linter configuration."""
-    config_file = os.path.join(path, ".json")
+    config_file = os.path.join(path, "auto_linter.config.yaml")
     if os.path.exists(config_file):
       if not click.confirm(f"{config_file} already exists. Overwrite?"):
         return
@@ -179,12 +177,13 @@ def register_dev_commands(cli):
         "score": 80.0,
         "complexity": 10
       },
-      "adapters": ["ruff", "mypy", "bandit", "radon", "duplicates", "trends"],
+      "adapters": ["ruff", "mypy", "bandit", "radon", "pip-audit", "governance", "duplicates", "trends"],
       "ignored_paths": ["node_modules", ".venv", "dist", "build"]
     }
 
+    import yaml
     with open(config_file, "w") as f:
-      json.dump(default_config, f, indent=4)
+      yaml.dump(default_config, f, sort_keys=False)
     click.echo(f" Initialized {config_file}")
 
   @cli.command()
