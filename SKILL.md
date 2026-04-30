@@ -1,5 +1,5 @@
 ---
-version: 1.6.8
+version: 1.6.9
 ---
 # Auto Linter Skill
 
@@ -61,7 +61,7 @@ Check system health: adapters, transport, and DesktopCommander connection.
 - `auto-lint setup hermes`: Auto-install into Hermes Agent.
 - `auto-lint setup mcp-config`: Print MCP configuration for clients.
 - `auto-lint adapters`: List all active linters.
-- `auto-lint version`: Show current version (1.6.8).
+- `auto-lint version`: Show current version (1.6.9).
 - `auto-lint config show`: View active configuration (YAML).
 - `auto-lint cancel <job_id>`: Cancel a running lint job.
 
