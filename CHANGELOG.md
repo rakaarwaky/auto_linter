@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.3 (2026-04-30)
+
+### Fixed
+- **PyPI Publishing**: Reverted to token-based publishing to ensure compatibility with existing repository secrets.
+
 ## 1.6.2 (2026-04-30)
 
 ### Fixed
