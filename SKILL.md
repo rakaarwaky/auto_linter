@@ -1,5 +1,5 @@
 ---
-version: 1.6.3
+version: 1.6.8
 ---
 # Auto Linter Skill
 
