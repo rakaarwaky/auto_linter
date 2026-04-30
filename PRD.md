@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 
-## Auto Linter MCP Server v1.0.0
+## Auto Linter MCP Server v1.6.0
 
 ---
 
@@ -8,7 +8,7 @@
 
 **Name**: Auto Linter
 **Type**: MCP Server + CLI Tool
-**Version**: 1.0.0
+**Version**: 1.6.0
 **License**: MIT
 **Language**: Python >= 3.12
 
@@ -114,6 +114,7 @@ In 2026, AI agents do the coding. auto_linter enables:
 | FR-036 | Community setup (setup init/hermes/doctor)      | Done   |
 | FR-037 | pip install + uvx support                       | Done   |
 | FR-038 | curl installer script                           | Done   |
+| FR-039 | Modern CI/CD (OIDC, SLSA Provenance)           | Done   |
 
 ### 5.4 Semantic Analysis (Enrichment)
 
@@ -132,7 +133,7 @@ In 2026, AI agents do the coding. auto_linter enables:
 | ID      | Requirement                   | Target  | Current |
 | ------- | ----------------------------- | ------- | ------- |
 | NFR-001 | Test coverage                 | 100%    | 100%    |
-| NFR-002 | All tests passing             | 100%    | 1000+/1000+ |
+| NFR-002 | All tests passing             | 100%    | 1500+/1500+ |
 | NFR-003 | Startup time (MCP server)     | < 2s    | ~1s     |
 | NFR-004 | Single-file scan time         | < 5s    | ~2s     |
 | NFR-005 | Full project scan (100 files) | < 30s   | ~10s    |

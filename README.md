@@ -3,7 +3,7 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-green.svg)](tests/)
-[![Test Count: 1000+](https://img.shields.io/badge/tests-1000%2B-green.svg)](tests/)
+[![Test Count: 1500+](https://img.shields.io/badge/tests-1500%2B-green.svg)](tests/)
 [![MCP Server](https://img.shields.io/badge/MCP-Server-blue.svg)](https://modelcontextprotocol.io/)
 [![AI Agent Ready](https://img.shields.io/badge/AI%20Agent-Ready-green.svg)](tests/)
 
@@ -258,7 +258,7 @@ Create with: `auto-lint setup init`
 
 ```yaml
 thresholds:
-  score: 80.0
+  score: 90.0
   complexity: 10
   max_file_lines: 500
 
