@@ -62,7 +62,3 @@ namespaces = false
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 
-[tool.auto_linter]
-project_name = "test-project"
-thresholds = { score = 95.0, complexity = 5 }
-adapters = ["ruff", "mypy", "bandit", "radon", "governance"]
